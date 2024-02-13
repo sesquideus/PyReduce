@@ -55,10 +55,8 @@ def load_config(configuration, instrument, j=0):
     elif isinstance(configuration, dict):
         if instrument in configuration.keys():
             config = configuration[str(instrument)]
-        elif (
-            "__instrument__" in configuration.keys()
-            and configuration["__instrument__"] == str(instrument).upper()
-        ):
+        elif "__instrument__" in configuration.keys() and \
+                configuration["__instrument__"] == str(instrument).upper():
             config = configuration
         else:
             raise KeyError("This configuration is for a different instrument")
@@ -153,7 +151,7 @@ def read_config(fname="settings_pyreduce.json"):
         return settings
 
 
-def validate_config(config):
+def validate_config(config) -> None:
     """Test that the input configuration complies with the expected schema
 
     Since it requires features from jsonschema 3+, it will only run if that is installed.

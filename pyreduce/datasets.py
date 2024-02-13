@@ -5,14 +5,55 @@ Provides example datasets for the examples
 This requires the server to be up and running,
 if data needs to be downloaded
 """
+import abc
 import logging
 import os
 import tarfile
+from pathlib import Path
 from os.path import dirname, isfile, join
 
 import wget
 
 logger = logging.getLogger(__name__)
+
+
+class Dataset(metaclass=abc.ABCMeta):
+    name: str = None
+
+    def __init__(self, name):
+        self.name = name
+
+    def load_data_from_server(self, filename, directory: Path):
+        server_url = r"http://sme.astro.uu.se/pyreduce/"
+        wget.download(f"{server_url}{filename}", out=directory / filename)
+
+    def get_dataset(self, name, *, local_dir: Path | None = None):
+        if local_dir is None:
+            # If no local dir is provided, use the parent of current file
+            local_dir = Path(__file__).parent
+
+        # Load data if necessary
+        fname = f"{name}.tar.gz"
+        data_dir = local_dir / "datasets" / name
+        filename = data_dir / fname
+
+        data_dir.mkdir(parents=True, exist_ok=True)
+        if filename.is_file():
+            logger.info(f"Using existing dataset {name} from {filename.name}")
+        else:
+            logger.info(f"Downloading dataset {name}")
+            logger.info(f"Data is stored at {data_dir}")
+            self.load_data_from_server(fname, data_dir)
+
+        # Extract the downloaded .tar.gz file
+        with tarfile.open(filename) as file:
+            raw_dir = data_dir / "raw"
+            names = [f for f in file if not (raw_dir / f.name).is_file()]
+            if len(names) != 0:
+                logger.info("Extracting data from tarball")
+                file.extractall(path=raw_dir, members=names)
+
+        return data_dir
 
 
 def load_data_from_server(filename, directory):

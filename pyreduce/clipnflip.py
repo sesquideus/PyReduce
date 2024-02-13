@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Module that
-    - Clips remove pre- and overscan regions
-    - Flips orients the image so that orders are roughly horizontal
+    - Clips: removes pre- and overscan regions
+    - Flips: orients the image so that orders are roughly horizontal
 """
 
 import logging
@@ -17,7 +17,7 @@ def clipnflip(
 ):
     """
     Process an image and associated FITS header already in memory as follows:
-    1. Trim image to desired subregion: newimage = image(xlo:xhi,ylo:yhi)
+    1. Trim image to desired subregion: newimage = image(xlo:xhi, ylo:yhi)
     2. Transform to standard orientation (red at top, orders run left to right)
 
     Parameters

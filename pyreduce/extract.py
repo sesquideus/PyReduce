@@ -1350,8 +1350,7 @@ def extract(
         )
         slitfunction = None
     else:
-        raise ValueError(
-            f"Parameter 'extraction_type' not understood. Expected 'optimal', 'normalize', or 'arc' bug got {extraction_type}."
-        )
+        raise ValueError(f"Parameter 'extraction_type' not understood."
+                         f"Expected 'optimal', 'normalize', or 'arc' but got {extraction_type}.")
 
     return spectrum, uncertainties, slitfunction, column_range

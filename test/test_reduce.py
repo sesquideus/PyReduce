@@ -23,7 +23,7 @@ def test_main(instrument, target, night, mode, input_dir, output_dir):
     assert "files" in output[0].keys()
 
     # Test default options
-    # Just just not find anything
+    # Just not find anything
     output = reduce.main(instrument, target, night, steps=())
 
 
