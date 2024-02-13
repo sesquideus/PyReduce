@@ -3,12 +3,13 @@
 Abstract parent module for all other instruments
 Contains some general functionality, which may be overridden by the children of course
 """
+import abc
 import datetime
 import glob
+import itertools
 import json
 import logging
 import os.path
-from itertools import product
 
 import numpy as np
 from astropy.io import fits
@@ -48,10 +49,10 @@ def observation_date_to_night(observation_date):
         return None
 
     observation_date = parser.parse(observation_date)
-    oneday = datetime.timedelta(days=1)
 
     if observation_date.hour < 12:
-        observation_date -= oneday
+        observation_date -= datetime.timedelta(days=1)
+
     return observation_date.date()
 
 
@@ -100,17 +101,17 @@ class getter:
         return value
 
 
-class Instrument:
+class Instrument(metaclass=abc.ABCMeta):
     """
     Abstract parent class for all instruments
     Handles the instrument specific information
     """
 
     def __init__(self):
-        #:str: Name of the instrument (lowercase)
-        self.name = self.__class__.__name__.lower()
-        #:dict: Information about the instrument
-        self.info = self.load_info()
+        # Name of the instrument (lowercase)
+        self.name: str = self.__class__.__name__.lower()
+        # Information about the instrument
+        self.info: dict[str] = self.load_info()
 
         self.filters = {
             "instrument": InstrumentFilter(self.info["instrument"], regex=True),
@@ -158,7 +159,7 @@ class Instrument:
 
         return extension
 
-    def load_info(self):
+    def load_info(self) -> dict[str]:
         """
         Load static instrument information
         Either as fits header keywords or static values
@@ -218,7 +219,6 @@ class Instrument:
         ONLY the header is returned if header_only is True
         """
 
-        info = self.info
         mode = mode.upper()
 
         hdu = fits.open(fname)
@@ -317,7 +317,8 @@ class Instrument:
             )
         return header
 
-    def find_files(self, input_dir):
+    @staticmethod
+    def find_files(input_dir):
         """Find fits files in the given folder
 
         Parameters
@@ -416,6 +417,7 @@ class Instrument:
             list if fits files
         expected : dict
             dictionary with expected header values for each reduction step
+        allow_calibration_only : bool
 
         Returns
         -------
@@ -444,7 +446,7 @@ class Instrument:
                     data[name] = self.filters[name].classify(value)
             # Get all combinations of possible filter values
             # e.g. if several nights are allowed
-            for thingy in product(*data.values()):
+            for thingy in itertools.product(*data.values()):
                 mask = np.copy(thingy[0][1])
                 for i in range(1, len(thingy)):
                     mask &= thingy[i][1]
@@ -471,7 +473,7 @@ class Instrument:
                 settings[shared] = keys
 
         values = [settings[k] for k in self.shared]
-        for setting in product(*values):
+        for setting in itertools.product(*values):
             setting = {k: v for k, v in zip(self.shared, setting)}
             night = setting[self.night]
             f = {}
@@ -515,7 +517,7 @@ class Instrument:
                                     if diff_new < diff_old:
                                         j = i
                         if j is None:
-                            # We still dont find any files
+                            # We still don't find any files
                             logger.warning(
                                 "Could not find any files for step '%s' in any night with settings %s, sharing parameters %s",
                                 step,
@@ -648,10 +650,9 @@ class COMMON(Instrument):
     pass
 
 
-def create_custom_instrument(
-    name, extension=0, info=None, mask_file=None, wavecal_file=None, hasModes=False
-):
-    cls = Instrument if not hasModes else InstrumentWithModes
+def create_custom_instrument(name, *,
+                             extension=0, info=None, mask_file=None, wavecal_file=None, has_modes=False):
+    cls = Instrument if not has_modes else InstrumentWithModes
 
     class CUSTOM(cls):
         def __init__(self):
@@ -665,7 +666,7 @@ def create_custom_instrument(
                 with open(info) as f:
                     data = json.load(f)
                 return data
-            except:
+            except Exception:
                 return info
 
         def get_extension(self, header, mode):

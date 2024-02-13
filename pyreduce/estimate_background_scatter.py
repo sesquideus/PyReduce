@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Module that estimates the background scatter
 """
@@ -15,15 +14,15 @@ logger = logging.getLogger(__name__)
 
 
 def estimate_background_scatter(
-    img,
+    img: np.ndarray[float],
     orders,
     column_range=None,
-    extraction_width=0.1,
-    scatter_degree=4,
+    extraction_width: float | np.ndarray[float] = 0.1,
+    scatter_degree: int = 4,
     sigma_cutoff=2,
     border_width=10,
-    plot=False,
-    plot_title=None,
+    plot: bool = False,
+    plot_title: str = None,
 ):
     """
     Estimate the background by fitting a 2d polynomial to interorder data
@@ -39,7 +38,8 @@ def estimate_background_scatter(
     column_range : array[nord, 2], optional
         range of columns to use in each order (default: None == all columns)
     extraction_width : float, array[nord, 2], optional
-        extraction width for each order, values below 1.5 are considered fractional, others as number of pixels (default: 0.1)
+        extraction width for each order.
+        Values below 1.5 are considered fractional, others as number of pixels (default: 0.1)
     scatter_degree : int, optional
         polynomial degree of the 2d fit for the background scatter (default: 4)
     plot : bool, optional

@@ -24,7 +24,7 @@ def clipnflip(
     -----------
     image : array[nrow, ncol]
         raw image to be processed.
-    header : fits.header, dict
+    header : fits.Header, dict
         FITS header of the image
     xrange : tuple(int, int), optional
         column - range to keep in the image (default: data from header/instrument)

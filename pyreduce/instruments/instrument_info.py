@@ -9,12 +9,13 @@ import importlib
 from .common import Instrument
 
 
-def load_instrument(instrument) -> Instrument:
-    """Load an python instrument module
+def load_instrument(instrument_name: str) -> Instrument:
+    """
+    Load a Python instrument module
 
     Parameters
     ----------
-    instrument : str
+    instrument_name : str
         name of the instrument
 
     Returns
@@ -28,23 +29,23 @@ def load_instrument(instrument) -> Instrument:
     # instruments = {"uves": uves.UVES, "harps": harps.HARPS}
     # instrument = instruments[instrument.lower()]
     # instrument = instrument()
-    if instrument is None:
-        instrument = "common"
+    if instrument_name is None:
+        instrument_name = "common"
 
-    fname = ".instruments.%s" % instrument.lower()
+    fname = ".instruments.%s" % instrument_name.lower()
     lib = importlib.import_module(fname, package="pyreduce")
-    instrument = getattr(lib, instrument.upper())
+    instrument = getattr(lib, instrument_name.upper())
     instrument = instrument()
 
     return instrument
 
 
-def get_instrument_info(instrument):
+def get_instrument_info(instrument_name: str):
     """Load instrument specific information
 
     Parameters
     ----------
-    instrument : str
+    instrument_name : str
         Name of the instrument
 
     Returns
@@ -53,7 +54,7 @@ def get_instrument_info(instrument):
         Dictionary with information
     """
 
-    instrument = load_instrument(instrument)
+    instrument = load_instrument(instrument_name)
     return instrument.info
 
 

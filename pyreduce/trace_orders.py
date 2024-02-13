@@ -21,7 +21,7 @@ from .util import polyfit1d
 logger = logging.getLogger(__name__)
 
 
-def fit(x, y, deg, regularization=0):
+def fit(x, y, deg, *, regularization=0):
     # order = polyfit1d(y, x, deg, regularization)
     if deg == "best":
         order = best_fit(x, y)

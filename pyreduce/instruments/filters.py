@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+import abc
 import logging
 import re
 from datetime import datetime
@@ -131,6 +131,7 @@ class NightFilter(Filter):
         """Convert an observation timestamp into the date of the observation night
         Nights start at 12am and end at 12 am the next day
         """
+        # TODO: how does this work with UTC / local time zones?
         if observation_date.to_datetime().hour < 12:
             observation_date -= 1 * u.day
         return observation_date.to_datetime().date()
@@ -147,9 +148,7 @@ class NightFilter(Filter):
                     header,
                 )
         else:
-            logger.warning(
-                "Could not determine the observation date of %s, skipping it", header
-            )
+            logger.warning("Could not determine the observation date of {header}, skipping it")
         self.data.append(value)
         return value
 

@@ -16,13 +16,13 @@ class BackgroundScatter(CalibrationStep):
         self._dependsOn += ["orders"]
 
         # Polynomial degrees for the background scatter fit, in row, column direction
-        self.scatter_degree: tuple[int, int] = config["scatter_degree"]
+        self.scatter_degree: int | tuple[int, int] = config["scatter_degree"]
         self.extraction_width = config["extraction_width"]
         self.sigma_cutoff = config["scatter_cutoff"]
         self.border_width = config["border_width"]
 
     @property
-    def savefile(self):
+    def savefile(self) -> str:
         """str: Name of the scatter file"""
         return os.path.join(self.output_dir, self.prefix + ".scatter.npz")
 
@@ -68,11 +68,9 @@ class BackgroundScatter(CalibrationStep):
         """
         try:
             data = np.load(self.savefile, allow_pickle=True)
-            logger.info("Background scatter file: %s", self.savefile)
+            logger.info(f"Background scatter file {self.savefile}")
         except FileNotFoundError:
-            logger.warning(
-                "No intermediate files found for the scatter. Using scatter = 0 instead."
-            )
+            logger.warning("No intermediate files found for the scatter. Using scatter = 0 instead.")
             data = {"scatter": None}
         scatter = data["scatter"]
         return scatter

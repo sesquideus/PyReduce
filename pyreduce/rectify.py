@@ -20,9 +20,9 @@ def rectify_image(
     )
 
     nord = order_range[1] - order_range[0]
-    orders = orders[order_range[0] : order_range[1]]
-    column_range = column_range[order_range[0] : order_range[1]]
-    extraction_width = extraction_width[order_range[0] : order_range[1]]
+    orders = orders[order_range[0]:order_range[1]]
+    column_range = column_range[order_range[0]:order_range[1]]
+    extraction_width = extraction_width[order_range[0]:order_range[1]]
 
     images = {}
     for i in tqdm(range(nord), desc="Order"):

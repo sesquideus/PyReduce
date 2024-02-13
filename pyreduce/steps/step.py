@@ -14,6 +14,7 @@ class Step(metaclass=abc.ABCMeta):
                  **config):
         self._dependsOn: list = []
         self._loadDependsOn: list = []
+
         # Name of the instrument
         self.instrument: str = instrument
         # Name of the instrument mode
@@ -55,7 +56,7 @@ class Step(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError
 
-    def load(self):  # pragma: no cover
+    def load(self, **kwargs):  # pragma: no cover
         """Load results from a previous execution
 
         If this raises a FileNotFoundError, run() will be used instead

@@ -9,7 +9,7 @@ import os.path
 import pyreduce
 from pyreduce.configuration import get_configuration_for_instrument
 from pyreduce.instruments.common import create_custom_instrument
-from pyreduce.reduce import Reducer
+from pyreduce.reducer import Reducer
 from pyreduce.util import start_logging
 
 # Define the path to support files if possible
@@ -50,7 +50,7 @@ start_logging(log_file)
 target = ""
 night = "2019-07-21"
 mode = ""
-steps = (
+steps = [
     "bias",
     "flat",
     "orders",
@@ -62,7 +62,7 @@ steps = (
     "science",
     # "continuum",
     # "finalize",
-)
+]
 
 # Call the PyReduce algorithm
 reducer = Reducer(

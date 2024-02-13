@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """
-with our powers combined we increase snr
+With our powers combined we increase SNR
 """
 import logging
-from os.path import dirname, join
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -74,7 +72,7 @@ def combine(files, output, plot=None):
     std = np.nanmedian(np.abs(arr - mean), axis=[0, 2])[:, None]
     vmin, vmax = mean - 5 * std, mean + 5 * std
 
-    # Disregard all values outside of 5 * MAD
+    # Disregard all values outside 5 * MAD
     where = (arr < vmin) | (arr > vmax)
     specs[where] = 0
     conts[where] = 1

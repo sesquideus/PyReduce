@@ -5,16 +5,13 @@ Handles instrument specific info for the HARPS spectrograph
 Mostly reading data from the header
 """
 import logging
-import os.path
+import numpy as np
+import os
 import re
 
-import numpy as np
-from astropy.io import fits
 from astropy.time import Time
-from dateutil import parser
 
-from .common import InstrumentWithModes, getter, observation_date_to_night
-from .filters import Filter
+from .common import InstrumentWithModes, getter
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +23,8 @@ class MCDONALD(InstrumentWithModes):
         kw = f"{{{self.info['date']}}}T{{{self.info['universal_time']}}}"
         self.filters["night"].keyword = kw
 
-    def _convert_time_deg(self, v):
+    @staticmethod
+    def _convert_time_deg(v):
         v = [float(s) for s in v.split(":")]
         v = v[0] + v[1] / 60 + v[2] / 3600
         return v

@@ -10,8 +10,6 @@ import re
 from itertools import product
 
 import numpy as np
-from astropy.io import fits
-from dateutil import parser
 
 from .common import Instrument, getter, observation_date_to_night
 from .filters import Filter

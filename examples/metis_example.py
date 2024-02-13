@@ -7,7 +7,6 @@ import os.path
 import pyreduce
 from pyreduce import datasets
 
-
 # define parameters
 instrument = "METIS"
 target = ""
@@ -48,7 +47,7 @@ output_dir = "reduced/"
 config = pyreduce.configuration.get_configuration_for_instrument(instrument, plot=1)
 
 
-# Configuring parameters of individual steps here overwrites those defined in the the settings_METIS.json file. 
+# Configuring parameters of individual steps here overwrites those defined in the settings_METIS.json file.
 # Once you are satisfied with the chosen parameter, you can update it in settings_METIS.json.
 
 # config["orders"]["noise"] = 120 

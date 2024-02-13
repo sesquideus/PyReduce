@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class Echelle:
-    def __init__(self, head={}, filename="", data={}):
-        self.filename = filename
-        self.header = head
-        self._data = data
+    def __init__(self, header=None, filename="", data=None):
+        self.filename = filename if filename is not None else ""
+        self.header = header if header is not None else {}
+        self._data = data if data is not None else {}
 
     @property
     def nord(self):
@@ -158,7 +158,7 @@ class Echelle:
         data = hdu[extension].data
 
         _data = {column.lower(): data[column][0] for column in data.dtype.names}
-        ech = Echelle(filename=fname, head=header, data=_data)
+        ech = Echelle(filename=fname, header=header, data=_data)
         nord, ncol = ech.nord, ech.ncol
 
         if not raw:
@@ -227,8 +227,10 @@ class Echelle:
 
 
 def calc_2dpolynomial(solution2d):
-    """Expand a 2d polynomial, where the data is given in a REDUCE make_wave format
-    Note that the coefficients are for order/100 and column/1000 respectively, where the order is counted from order base up
+    """
+    Expand a 2d polynomial, where the data is given in a REDUCE make_wave format.
+    Note that the coefficients are for order/100 and column/1000 respectively,
+    where the order is counted from order base up.
 
     Parameters
     ----------
@@ -336,7 +338,7 @@ def read(fname, **kwargs):
     return Echelle.read(fname, **kwargs)
 
 
-def save(fname, header, **kwargs):
+def save(fname: str, header: fits.Header, **kwargs) -> None:
     """Save data in an Echelle fits, i.e. a fits file with a Binary Table in Extension 1
 
     The data is passed in kwargs, with the name of the binary table column as the key
@@ -346,7 +348,7 @@ def save(fname, header, **kwargs):
     ----------
     fname : str
         filename
-    header : fits.header
+    header : fits.Header
         FITS header
     **kwargs : array[]
         data to be saved in the file
