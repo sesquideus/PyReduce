@@ -45,6 +45,8 @@ def get_configuration_for_instrument(instrument, **kwargs):
 
 
 def load_config(configuration, instrument, j=0):
+    logger.debug(f"Loading configuration for instrument {instrument})")
+
     if configuration is None:
         logger.info(
             "No configuration specified, using default values for this instrument"
@@ -155,10 +157,10 @@ def validate_config(config):
     """Test that the input configuration complies with the expected schema
 
     Since it requires features from jsonschema 3+, it will only run if that is installed.
-    Otherwise show a warning but continue. This is incase some other module needs an earlier,
+    Otherwise show a warning but continue. This is in case some other module needs an earlier,
     jsonschema (looking at you jwst).
 
-    If the function runs through without raising an exception, the check was succesful or skipped.
+    If the function runs through without raising an exception, the check was successful or skipped.
 
     Parameters
     ----------

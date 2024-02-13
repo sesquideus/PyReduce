@@ -37,7 +37,7 @@ steps = (
 # Feel free to change this to your own preference, values in curly brackets will be replaced with the actual values {}
 
 # load dataset (and save the location)
-base_dir = "/DATA/ESO/CRIRES+/pCOMM/210824_mincal"
+base_dir = "./DATA/ESO/CRIRES+/pCOMM/210824_mincal"
 input_dir = "J1228/"
 output_dir = "{mode}_reduced/"
 

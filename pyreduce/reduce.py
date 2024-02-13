@@ -68,9 +68,9 @@ logger = logging.getLogger(__name__)
 def main(
     instrument,
     target,
-    night=None,
+    night: str | None = None,
     modes=None,
-    steps="all",
+    steps: str | tuple = "all",
     base_dir=None,
     input_dir=None,
     output_dir=None,
