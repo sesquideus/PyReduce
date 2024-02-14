@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 Simple usage example for PyReduce
 Loads a sample UVES dataset, and runs the full extraction
 """
 
+import datetime
 import os.path
 
 import pyreduce
@@ -48,7 +48,7 @@ start_logging(log_file)
 
 # Define other parameter for PyReduce
 target = ""
-night = "2019-07-21"
+night = datetime.date(2019, 7, 21)
 mode = ""
 steps = [
     "bias",

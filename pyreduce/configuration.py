@@ -44,13 +44,11 @@ def get_configuration_for_instrument(instrument, **kwargs):
     return config
 
 
-def load_config(configuration, instrument, j=0):
+def load_config(configuration, instrument, j: int = 0):
     logger.debug(f"Loading configuration for instrument {instrument})")
 
     if configuration is None:
-        logger.info(
-            "No configuration specified, using default values for this instrument"
-        )
+        logger.warning("No configuration specified, using default values for this instrument")
         config = get_configuration_for_instrument(instrument, plot=False)
     elif isinstance(configuration, dict):
         if instrument in configuration.keys():

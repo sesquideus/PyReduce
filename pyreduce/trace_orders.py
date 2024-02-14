@@ -21,17 +21,21 @@ from .util import polyfit1d
 logger = logging.getLogger(__name__)
 
 
-def fit(x, y, deg, *, regularization=0):
+def fit(x, y, deg: str | int, regularization=0):
     # order = polyfit1d(y, x, deg, regularization)
     if deg == "best":
         order = best_fit(x, y)
-    else:
+    elif isinstance(deg, int):
         order = Polynomial.fit(y, x, deg=deg, domain=[]).coef[::-1]
+    else:
+        raise TypeError(f"Invalid degree {deg}")
     return order
 
 
 def best_fit(x, y):
-    aic = np.inf
+    aic: float = np.inf
+    coeff: float = np.inf
+
     for k in range(5):
         coeff_new = fit(x, y, k)
         chisq = np.sum((np.polyval(coeff_new, y) - x) ** 2)
@@ -70,8 +74,9 @@ def determine_overlap_rating(xi, yi, xj, yj, mean_cluster_thickness, nrow, ncol,
     ind_i = np.where((diff_i < mean_cluster_thickness) & (y_ji >= 0) & (y_ji < nrow))
     ind_j = np.where((diff_j < mean_cluster_thickness) & (y_ij >= 0) & (y_ij < nrow))
 
-    # TODO: There should probably be some kind of normaliztion, that scales with the size of the cluster?
-    # or possibly only use the closest pixels to determine overlap, since the polynomial is badly constrained outside of the bounds.
+    # TODO: There should probably be some kind of normalization, that scales with the size of the cluster?
+    # or possibly only use the closest pixels to determine overlap,
+    # since the polynomial is badly constrained outside of the bounds.
     overlap = min(n_min, len(ind_i[0])) + min(n_min, len(ind_j[0]))
     # overlap = overlap / ((i_right - i_left) + (j_right - j_left))
     overlap /= 2 * n_min
@@ -171,7 +176,7 @@ def merge_clusters(
     deg=2,
     auto_merge_threshold=0.9,
     merge_min_threshold=0.1,
-    plot_title=None,
+    plot_title: str = None,
 ):
     """Merge clusters that belong together
 
@@ -251,7 +256,7 @@ def merge_clusters(
     return x, y, n_clusters
 
 
-def fit_polynomials_to_clusters(x, y, clusters, degree, regularization=0):
+def fit_polynomials_to_clusters(x, y, clusters, degree, regularization: int = 0):
     """Fits a polynomial of degree opower to points x, y in cluster clusters
 
     Parameters

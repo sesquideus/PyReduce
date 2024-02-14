@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Collection of various useful and/or reoccuring functions across PyReduce
 """
@@ -6,7 +5,6 @@ Collection of various useful and/or reoccuring functions across PyReduce
 import logging
 import os
 import warnings
-from itertools import product
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,8 +13,6 @@ import scipy.interpolate
 from astropy import coordinates as coord
 from astropy import time
 from astropy import units as u
-from astropy.io import fits
-from mpl_toolkits.mplot3d import Axes3D
 from scipy.linalg import lstsq, solve, solve_banded
 from scipy.ndimage.filters import median_filter
 from scipy.optimize import curve_fit, least_squares
@@ -24,9 +20,12 @@ from scipy.special import binom
 
 from . import __version__
 from .clipnflip import clipnflip
-from .instruments.instrument_info import modeinfo
 
 logger = logging.getLogger(__name__)
+
+
+class ConfigurationError(Exception):
+    """ Exception subclass for reporting configuration errors """
 
 
 def resample(array, new_size):

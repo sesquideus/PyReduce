@@ -70,9 +70,9 @@ pyreduce.reduce.main(
     night,
     mode,
     steps,
-    base_dir=base_dir,
-    input_dir=input_dir,
-    output_dir=output_dir,
+    base_dir_template=base_dir,
+    input_dir_template=input_dir,
+    output_dir_template=output_dir,
     configuration=config,
     # order_range=(16, 17),  #(16, 17) # I had to change it inside reduce.py becuase it does the fix_column_range for all detected orders > outside of image
 )

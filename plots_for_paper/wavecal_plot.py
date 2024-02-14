@@ -109,9 +109,9 @@ data = pyreduce.reduce.main(
     night,
     mode,
     steps,
-    base_dir=base_dir,
-    input_dir=input_dir,
-    output_dir=output_dir,
+    base_dir_template=base_dir,
+    input_dir_template=input_dir,
+    output_dir_template=output_dir,
     configuration=config,
     # order_range=(0, 25),
 )

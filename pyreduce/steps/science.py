@@ -1,9 +1,9 @@
 import logging
+import numpy as np
 
 from tqdm import tqdm
 
 from pyreduce import echelle, util
-
 from .calibration import CalibrationStep
 from .extraction import ExtractionStep
 
@@ -33,7 +33,14 @@ class ScienceExtraction(CalibrationStep, ExtractionStep):
         """
         return util.swap_extension(name, ".science.ech", path=self.output_dir)
 
-    def run(self, files, bias, orders, norm_flat, curvature, scatter, mask):
+    def run(self,
+            files: list[str],
+            bias: tuple,
+            orders: tuple,
+            norm_flat: tuple,
+            curvature: tuple,
+            scatter,
+            mask: np.ndarray[bool]):
         """Extract Science spectra from observation
 
         Parameters

@@ -6,6 +6,8 @@ Mostly reading data from the header
 import logging
 import os.path
 
+from pathlib import Path
+
 from .common import Instrument
 
 logger = logging.getLogger(__name__)
@@ -29,12 +31,7 @@ class UVES(Instrument):
         info = self.load_info()
         specifier = int(header[info["wavecal_specifier"]])
 
-        cwd = os.path.dirname(__file__)
-        fname = "{instrument}_{mode}_{specifier}nm_2D.npz".format(
-            instrument="uves", mode=mode.lower(), specifier=specifier
-        )
-        fname = os.path.join(cwd, "..", "wavecal", fname)
-        return fname
+        return Path(__file__).parents[1] / "wavecal" / f"{self.name}_{mode.lower()}_{specifier}nm_2D.npz"
 
     def get_mask_filename(self, mode, **kwargs):
         i = self.name.lower()

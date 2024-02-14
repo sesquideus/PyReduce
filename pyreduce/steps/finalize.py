@@ -18,7 +18,7 @@ class Finalize(Step):
         self._dependsOn += ["continuum", "freq_comb", "config"]
         self.filename = config["filename"]
 
-    def output_file(self, number, name):
+    def output_file(self, number, name) -> str:
         """str: output file name"""
         out = self.filename.format(
             instrument=self.instrument.name,
@@ -27,7 +27,7 @@ class Finalize(Step):
             number=number,
             input=name,
         )
-        return os.path.join(self.output_dir, out)
+        return str(os.path.join(self.output_dir, out))
 
     def save_config_to_header(self, head, config, prefix="PR"):
         for key, value in config.items():
@@ -46,7 +46,7 @@ class Finalize(Step):
                 head[f"HIERARCH {prefix} {key.upper()}"] = value
         return head
 
-    def run(self, continuum, freq_comb, config):
+    def run(self, continuum: tuple, freq_comb: tuple, config):
         """Create the final output files
 
         this includes:

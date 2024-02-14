@@ -1,4 +1,7 @@
 import abc
+import datetime
+
+from pyreduce.instruments import Instrument
 
 
 class Step(metaclass=abc.ABCMeta):
@@ -9,28 +12,27 @@ class Step(metaclass=abc.ABCMeta):
                  mode: str,
                  target: str,
                  night,
-                 output_dir,
+                 output_dir_template: str,
                  order_range,
                  **config):
         self._dependsOn: list = []
         self._loadDependsOn: list = []
 
         # Name of the instrument
-        self.instrument: str = instrument
+        self.instrument: Instrument = instrument
         # Name of the instrument mode
         self.mode: str = mode
         # Name of the observation target
         self.target: str = target
         # Date of the observation (as a string)
-        # TODO Make this into datetime.date instead
-        self.night: str = night
+        self.night: datetime.date = night
         # First and Last(+1) order to process
         self.order_range: tuple[int, int] = order_range
         # Whether to plot the results or the progress of this step
         self.plot: bool = config.get("plot", False)
         # Title used in the plots, if any
         self.plot_title: str | None = config.get("plot_title", None)
-        self._output_dir = output_dir
+        self._output_dir_template: str = output_dir_template
 
     @abc.abstractmethod
     def run(self, files, *args):  # pragma: no cover
@@ -83,19 +85,19 @@ class Step(metaclass=abc.ABCMeta):
     @property
     def output_dir(self):
         """str: output directory, may contain tags {instrument}, {night}, {target}, {mode}"""
-        return self._output_dir.format(
+        return self._output_dir_template.format(
             instrument=self.instrument.name.upper(),
             target=self.target,
-            night=self.night,
+            night=self.night.isoformat(),
             mode=self.mode,
         )
 
     @property
     def prefix(self):
         """str: temporary file prefix"""
-        i = self.instrument.name.lower()
+        name = self.instrument.name.lower()
         if self.mode is not None and self.mode != "":
-            m = self.mode.lower()
-            return f"{i}_{m}"
+            mode = self.mode.lower()
+            return f"{name}_{mode}"
         else:
-            return i
+            return name

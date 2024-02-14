@@ -16,10 +16,11 @@ class WorkflowUVES(Workflow):
     night = datetime.date(2010, 4, 1)
     mode = "middle"
     steps = ["bias", "flat", "orders", "norm_flat", "wavecal", "curvature", "science", "continuum", "finalize"]
-    base_dir = datasets.UVES(os.path.expanduser("~") + "/PyReduce/DATA")
-    input_dir = "raw/"
-    output_dir = "reduced/{night}/{mode}"
+    base_dir_template = datasets.UVES(os.path.expanduser("~") + "/PyReduce/DATA")
+    input_dir_template = "raw/"
+    output_dir_template = "reduced/{night}/{mode}"
     order_range = (1, 21)
+    debug = True
 
 
 # some basic settings

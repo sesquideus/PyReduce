@@ -7,9 +7,10 @@ Mostly reading data from the header
 import logging
 import os.path
 import re
-from itertools import product
-
 import numpy as np
+
+from itertools import product
+from pathlib import Path
 
 from .common import Instrument, getter, observation_date_to_night
 from .filters import Filter
@@ -39,12 +40,9 @@ class ANDES(Instrument):
         settings = self.info["settings"]
         deckers = self.info["deckers"]
         detectors = self.info["chips"]
-        modes = [
-            "_".join([s, d, c]) for s, d, c in product(settings, deckers, detectors)
-        ]
-        return modes
+        return ["_".join([s, d, c]) for s, d, c in product(settings, deckers, detectors)]
 
-    def parse_mode(self, mode):
+    def parse_mode(self, mode) -> tuple:
         pattern = r"([YJHKLM]\d{4})(_(Open|pos1|pos2))?_det(\d)"
         match = re.match(pattern, mode, flags=re.IGNORECASE)
         band = match.group(1).upper()
@@ -77,18 +75,18 @@ class ANDES(Instrument):
         cwd = os.path.dirname(__file__)
         fname = "{instrument}_{mode}.npz".format(instrument=self.name, mode=mode)
         fname = os.path.join(cwd, "..", "wavecal", fname)
-        return fname
+
+        return Path(__file__).parents[1] / "wavecal" / f"{self.name}_{mode}.npz"
 
     def get_mask_filename(self, mode, **kwargs):
-        i = self.name.lower()
         band, decker, detector = self.parse_mode(mode)
-
-        fname = f"mask_{i}_det{detector}.fits.gz"
+        fname = f"mask_{self.name.lower()}_det{detector}.fits.gz"
         cwd = os.path.dirname(__file__)
         fname = os.path.join(cwd, "..", "masks", fname)
-        return fname
 
-    def get_wavelength_range(self, header, mode, **kwargs):
+        return Path(__file__).parents[1] / "masks" / f"mask_{self.name.lower()}_det{detector}.fits.gz"
+
+    def get_wavelength_range(self, header, mode, **kwargs) -> np.ndarray:
         wmin = [header["ESO INS WLEN MIN%i" % i] for i in range(1, 11)]
         wmax = [header["ESO INS WLEN MAX%i" % i] for i in range(1, 11)]
 

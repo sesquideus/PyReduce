@@ -17,11 +17,16 @@ License
 ...
 
 """
+
+import datetime
 import logging
 import itertools
 import os
-
 import numpy as np
+import pprint
+
+from pathlib import Path
+from typing import Any
 
 # PyReduce subpackages
 from . import __version__, instruments, util
@@ -38,18 +43,20 @@ logger = logging.getLogger(__name__)
 
 
 def main(instrument_name: str,
-         target,
-         night: str | None = None,
-         modes=None,
-         steps: str | list[str] = "all",
+         target: str | list[str] = None,
+         night: datetime.date | list[datetime.date] | None = None,  # TODO Change this to datetime.date
+         modes: str | list[str] | dict[Instrument, str] = None,
          *,
-         base_dir=None,
-         input_dir=None,
-         output_dir=None,
-         configuration=None,
+         steps: str | list[str] = "all",
+         base_dir_template: str = None,
+         input_dir_template: str = None,
+         output_dir_template: str = None,
+         configuration: dict[str, Any] = None,
          order_range=None,
-         allow_calibration_only=False,
-         skip_existing=False):
+         allow_calibration_only: bool = False,
+         skip_existing: bool = False,
+         debug: bool = False, # until converted to a class
+    ):
     r"""
     Main entry point for REDUCE scripts,
     default values can be changed as required if reduce is used as a script
@@ -67,18 +74,18 @@ def main(instrument_name: str,
     modes : str, list[str], dict[{instrument}:list], None, optional
         the instrument modes to use, if None will use all known modes for the current instrument.
         See instruments for possible options.
-    steps : tuple(str), "all", optional
+    steps : list(str), "all", optional
         which steps of the reduction process to perform
         the possible steps are: "bias", "flat", "orders", "norm_flat", "wavecal", "science"
         alternatively set steps to "all", which is equivalent to setting all steps
         Note that the later steps require the previous intermediary products to exist and raise an exception otherwise
-    base_dir : str, optional
+    base_dir_template : str, optional
         base data directory that Reduce should work in, is prefixed on input_dir and output_dir
         (default: use settings_pyreduce.json)
-    input_dir : str, optional
+    input_dir_template : str, optional
         input directory containing raw files. Can contain placeholders {instrument}, {target}, {night}, {mode}
         as well as wildcards. If relative will use base_dir as root (default: use settings_pyreduce.json)
-    output_dir : str, optional
+    output_dir_template : str, optional
         output directory for intermediary and final results.
         Can contain placeholders {instrument}, {target}, {night}, {mode}, but no wildcards.
         If relative will use base_dir as root (default: use settings_pyreduce.json)
@@ -86,17 +93,29 @@ def main(instrument_name: str,
         configuration file for the current run, contains parameters for different parts of reduce.
         Can be a path to a json file, or a dict with configurations for the different instruments.
         When a list, the order must be the same as instruments (default: settings_{instrument.upper()}.json)
+    debug: bool
+        Show debugging info and set logger level accordingly
     """
-    if target is None or np.isscalar(target):
-        target = [target]
-    if night is None or np.isscalar(night):
-        night = [night]
+
+    logger.setLevel(logging.DEBUG if debug else logging.INFO)
+
+    # If there is a single target, create a length-1 list from it
+    if isinstance(target, str):
+        targets = [target]
+    else:
+        targets = target
+
+    # If there is a single night, create a length-1 list from it
+    if isinstance(night, datetime.date):
+        nights = [night]
+    else:
+        nights = night
 
     is_none = {
         "modes": modes is None,
-        "base_dir": base_dir is None,
-        "input_dir": input_dir is None,
-        "output_dir": output_dir is None,
+        "base_dir": base_dir_template is None,
+        "input_dir": input_dir_template is None,
+        "output_dir": output_dir_template is None,
     }
     output = []
 
@@ -106,36 +125,40 @@ def main(instrument_name: str,
     # config: paramters for the current reduction
     # info: constant, instrument specific parameters
 
+    logger.debug(f"Configuration is:")
+    if debug:
+        pprint.pprint(configuration)
+
     instrument: Instrument = instruments.instrument_info.load_instrument(instrument_name)
 
     config = load_config(configuration, instrument_name, 0)
     info = instrument.info
 
     # load default settings from settings_pyreduce.json
-    if base_dir is None:
-        base_dir = config["reduce"]["base_dir"]
-    if input_dir is None:
-        input_dir = config["reduce"]["input_dir"]
-    if output_dir is None:
-        output_dir = config["reduce"]["output_dir"]
+    if base_dir_template is None:
+        base_dir_template = config["reduce"]["base_dir"]
+    if input_dir_template is None:
+        input_dir_template = config["reduce"]["input_dir"]
+    if output_dir_template is None:
+        output_dir_template = config["reduce"]["output_dir"]
 
-    input_dir = os.path.join(base_dir, input_dir)
-    output_dir = os.path.join(base_dir, output_dir)
+    input_dir_template: str = os.path.join(base_dir_template, input_dir_template)
+    output_dir_template: str = os.path.join(base_dir_template, output_dir_template)
 
     if modes is None:
         modes = info["modes"]
     if np.isscalar(modes):
         modes = [modes]
 
-    for t, n, m in itertools.product(target, night, modes):
+    for t, n, m in itertools.product(targets, nights, modes):
         log_file = os.path.join(
-            base_dir.format(instrument=str(instrument), mode=modes, target=t),
+            base_dir_template.format(instrument=str(instrument), mode=modes, target=t),
             "logs/%s.log" % t,
         )
         util.start_logging(log_file)
         # find input files and sort them by type
         files = instrument.sort_files(
-            input_dir,
+            input_dir_template,
             t,
             n,
             mode=m,
@@ -143,36 +166,30 @@ def main(instrument_name: str,
             allow_calibration_only=allow_calibration_only,
         )
         if len(files) == 0:
-            logger.warning(
-                f"No files found for instrument: %s, target: %s, night: %s, mode: %s in folder: %s",
-                instrument,
-                t,
-                n,
-                m,
-                input_dir,
-            )
-            continue
-        for k, f in files:
-            logger.info("Settings:")
-            for key, value in k.items():
-                logger.info("%s: %s", key, value)
-            logger.debug("Files:\n%s", f)
+            logger.warning(f"No files found for instrument {instrument}, target: {t}, night: {n}, mode: {m} "
+                           f"in folder: {input_dir_template}")
+        else:
+            for k, f in files:
+                logger.info("Settings:")
+                for key, value in k.items():
+                    logger.info("%s: %s", key, value)
+                logger.debug("Files:\n%s", f)
 
-            reducer = Reducer(
-                f,
-                output_dir,
-                k.get("target"),
-                instrument,
-                m,
-                k.get("night"),
-                config,
-                order_range=order_range,
-                skip_existing=skip_existing,
-            )
-            # try:
-            data = reducer.run_steps(steps=steps)
-            output.append(data)
-            # except Exception as e:
-            #     logger.error("Reduction failed with error message: %s", str(e))
-            #     logger.info("------------")
+                reducer = Reducer(
+                    f,
+                    output_dir_template,
+                    k.get("target"),
+                    instrument,
+                    m,
+                    k.get("night"),
+                    config,
+                    order_range=order_range,
+                    skip_existing=skip_existing,
+                )
+                # try:
+                data = reducer.run_steps(steps=steps)
+                output.append(data)
+                # except Exception as e:
+                #     logger.error("Reduction failed with error message: %s", str(e))
+                #     logger.info("------------")
     return output

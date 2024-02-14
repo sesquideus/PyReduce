@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This is used when pyreduce is used as a script
 """
@@ -22,7 +21,8 @@ def help():
 
 def reduce():
     parser = argparse.ArgumentParser(
-        description="PyReduce script tools interface", prog="python -m pyreduce"
+        description="PyReduce script tools interface",
+        prog="python -m pyreduce"
     )
     parser.add_argument("script", help="which script to execute", choices=["reduce"])
 
@@ -30,15 +30,9 @@ def reduce():
     parser.add_argument("-f", "--flat", action="store_true", help="Create master flat")
     parser.add_argument("-o", "--orders", action="store_true", help="Trace orders")
     parser.add_argument("-n", "--norm_flat", action="store_true", help="Normalize flat")
-    parser.add_argument(
-        "-w", "--wavecal", action="store_true", help="Prepare wavelength calibration"
-    )
-    parser.add_argument(
-        "-s", "--science", action="store_true", help="Extract science spectrum"
-    )
-    parser.add_argument(
-        "-c", "--continuum", action="store_true", help="Normalize continuum"
-    )
+    parser.add_argument("-w", "--wavecal", action="store_true", help="Prepare wavelength calibration")
+    parser.add_argument("-s", "--science", action="store_true", help="Extract science spectrum")
+    parser.add_argument("-c", "--continuum", action="store_true", help="Normalize continuum")
 
     parser.add_argument("instrument", type=str, help="instrument used")
     parser.add_argument("target", type=str, help="target star")
@@ -62,7 +56,7 @@ def reduce():
     if len(steps_to_take) == 0:
         steps_to_take = "all"
 
-    main(instrument=instrument, target=target, steps=steps_to_take)
+    main(instrument, target, steps=steps_to_take)
 
 
 def combine():

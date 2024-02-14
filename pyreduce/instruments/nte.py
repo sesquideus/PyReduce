@@ -7,9 +7,7 @@ Mostly reading data from the header
 import logging
 import os.path
 
-import numpy as np
-from astropy.io import fits
-from dateutil import parser
+from pathlib import Path
 
 from .common import Instrument, getter, observation_date_to_night
 
@@ -29,7 +27,7 @@ class NTE(Instrument):
 
         return header
 
-    def get_wavecal_filename(self, header, mode, **kwargs):
+    def get_wavecal_filename(self, header, mode, **kwargs) -> Path:
         """Get the filename of the wavelength calibration config file"""
         info = self.load_info()
         specifier = int(header[info["wavecal_specifier"]])
@@ -39,7 +37,7 @@ class NTE(Instrument):
             instrument="nte", mode=mode.lower(), specifier=specifier
         )
         fname = os.path.join(cwd, "..", "wavecal", fname)
-        return fname
+        return Path(__file__).parents[1] / "wavecal" / f"{self.name}_{mode.lower()}_{specifier}nm_2D.npz"
 
     def get_wavelength_range(self, header, mode):
         wave = 7 * [7000, 20_000]

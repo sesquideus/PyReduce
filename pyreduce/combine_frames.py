@@ -19,6 +19,7 @@ from tqdm import tqdm
 from .clipnflip import clipnflip
 from .instruments.instrument_info import load_instrument
 from .util import gaussbroad, gaussfit, remove_bias
+from .instruments import Instrument
 
 logger = logging.getLogger(__name__)
 
@@ -146,9 +147,9 @@ def fix_bad_pixels(probability, buffer, readnoise, gain, threshold):
 
 
 def combine_frames(
-    files,
-    instrument,
-    mode,
+    files: list[str],
+    instrument: Instrument,
+    mode: str,
     extension=None,
     threshold=3.5,
     window=50,
@@ -241,6 +242,11 @@ def combine_frames(
         combined image data, header
     """
 
+    assert isinstance(files, list), "A list of files is expected as an input"
+    assert isinstance(instrument, Instrument), "All instruments should be Instrument instances at this stage"
+
+    logger.debug(f"Combining frames for instrument {instrument.name} in mode {mode} for files {files}")
+
     DEBUG_NROWS = 100  # print status update every DEBUG_NROWS rows (if debug is True)
     if instrument is None or isinstance(instrument, str):
         instrument = load_instrument(instrument)
@@ -248,26 +254,20 @@ def combine_frames(
     # summarize file info
     logger.debug("Files:")
     for i, fname in zip(range(len(files)), files):
-        logger.debug("%i\t%s", i, fname)
+        logger.debug("    %i\t%s", i, fname)
 
     # Only one image
     if len(files) == 0:
         raise ValueError("No files given for combine frames")
     elif len(files) == 1:
-        result, head = instrument.load_fits(
-            files[0], mode, dtype=dtype, extension=extension, **kwargs
-        )
+        result, head = instrument.load_fits(files[0], mode, extension=extension, dtype=dtype, **kwargs)
         return result, head
     # Two images
     elif len(files) == 2:
-        bias1, head1 = instrument.load_fits(
-            files[0], mode, dtype=dtype, extension=extension, **kwargs
-        )
+        bias1, head1 = instrument.load_fits(files[0], mode, extension=extension, dtype=dtype, **kwargs)
         exp1 = head1.get("exptime", 0)
 
-        bias2, head2 = instrument.load_fits(
-            files[1], mode, dtype=dtype, extension=extension, **kwargs
-        )
+        bias2, head2 = instrument.load_fits(files[1], mode, extension=extension, dtype=dtype, **kwargs)
         exp2 = head2.get("exptime", 0)
         readnoise = head2.get("e_readn", 0)
 
@@ -284,9 +284,7 @@ def combine_frames(
         # TODO: check if all values are the same in all the headers?
 
         heads = [
-            instrument.load_fits(
-                f, mode, header_only=True, dtype=dtype, extension=extension, **kwargs
-            )
+            instrument.load_fits(f, mode, extension=extension, header_only=True, dtype=dtype, **kwargs)
             for f in files
         ]
         head = heads[0]
@@ -448,9 +446,9 @@ def combine_frames(
 
 
 def combine_calibrate(
-    files,
-    instrument,
-    mode,
+    files: list[str],
+    instrument: Instrument,
+    mode: str,
     mask=None,
     bias=None,
     bhead=None,
@@ -500,6 +498,8 @@ def combine_calibrate(
     ValueError
         Unrecognised bias_scaling option
     """
+    logger.debug(f"Running {combine_calibrate.__qualname__} for instrument {instrument.name} on data {files}")
+
     # Combine the images and try to remove bad pixels
     orig, thead = combine_frames(files, instrument, mode, mask=mask, **kwargs)
 

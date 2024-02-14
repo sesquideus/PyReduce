@@ -6,15 +6,20 @@ Module that
 """
 
 import logging
-
 import numpy as np
+
+from astropy.io import fits
 
 logger = logging.getLogger(__name__)
 
 
-def clipnflip(
-    image, header, xrange=None, yrange=None, orientation=None, transpose=None
-):
+def clipnflip(image: np.ndarray,
+              header: fits.Header,
+              xrange: tuple[int, int] = None,
+              yrange: tuple[int, int] = None,
+              orientation: int = None,
+              transpose: bool = None,
+              ) -> np.ndarray[float]:
     """
     Process an image and associated FITS header already in memory as follows:
     1. Trim image to desired subregion: newimage = image(xlo:xhi, ylo:yhi)

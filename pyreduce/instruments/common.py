@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Abstract parent module for all other instruments
 Contains some general functionality, which may be overridden by the children of course
@@ -10,15 +9,18 @@ import itertools
 import json
 import logging
 import os.path
-
 import numpy as np
+
 from astropy.io import fits
 from astropy.time import Time
 from dateutil import parser
+from pathlib import Path
 from tqdm import tqdm
+from typing import Any
 
 from ..clipnflip import clipnflip
 from .filters import Filter, InstrumentFilter, ModeFilter, NightFilter, ObjectFilter
+from ..util import ConfigurationError
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,7 @@ def observation_date_to_night(observation_date):
 class getter:
     """Get data from a header/dict, based on the given mode, and applies replacements"""
 
-    def __init__(self, header, info, mode):
+    def __init__(self, header: fits.Header, info, mode):
         self.header = header
         self.info = info.copy()
         try:
@@ -174,16 +176,28 @@ class Instrument(metaclass=abc.ABCMeta):
         # if a value changes depending on the mode, use a list with the same order as "modes"
         # you can also use values from this dictionary as placeholders using {name}, just like str.format
 
-        this = os.path.dirname(__file__)
-        fname = f"{self.name}.json"
-        fname = os.path.join(this, fname)
+        fname = Path(__file__).parent / f"{self.name}.json"
+
         with open(fname) as f:
-            info = json.load(f)
+            try:
+                info = json.load(f)
+            except FileNotFoundError as exc:
+                logger.critical(f"Could not load info for instrument {self.name}: file not found")
+                raise ConfigurationError("Instrument configuration failed") from exc
+            except (TypeError, json.JSONDecodeError) as exc:
+                logger.critical(f"Could not load info for instrument {self.name} from file {fname}")
+                raise ConfigurationError("Instrument configuration failed") from exc
         return info
 
-    def load_fits(
-        self, fname, mode, extension=None, mask=None, header_only=False, dtype=None
-    ):
+    def load_fits(self,
+                  fname: str,
+                  mode: str,
+                  *,
+                  extension: int = None,
+                  mask: np.ndarray[float] = None,
+                  header_only: bool = False,
+                  dtype: np.dtype = np.float64
+                  ) -> fits.Header | tuple[np.ma.masked_array, fits.Header]:  # TODO Maybe a sensible default here?
         """
         load fits file, REDUCE style
 
@@ -194,10 +208,9 @@ class Instrument(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
+        *
         fname : str
             filename
-        instrument : str
-            name of the instrument
         mode : str
             instrument mode
         extension : int
@@ -246,19 +259,19 @@ class Instrument(metaclass=abc.ABCMeta):
         hdu.close()
         return data, header
 
-    def add_header_info(self, header, mode, **kwargs):
+    def add_header_info(self, header: fits.Header, mode: str, **kwargs) -> dict[str, Any]:
         """read data from header and add it as REDUCE keyword back to the header
 
         Parameters
         ----------
-        header : fits.header, dict
+        header : fits.Header, dict
             header to read/write info from/to
         mode : str
             instrument mode
 
         Returns
         -------
-        header : fits.header, dict
+        header : fits.Header, dict
             header with added information
         """
 
@@ -318,7 +331,7 @@ class Instrument(metaclass=abc.ABCMeta):
         return header
 
     @staticmethod
-    def find_files(input_dir):
+    def find_files(input_dir) -> np.ndarray[str]:
         """Find fits files in the given folder
 
         Parameters
@@ -336,7 +349,10 @@ class Instrument(metaclass=abc.ABCMeta):
         files = np.array(files)
         return files
 
-    def get_expected_values(self, target, night, *args, **kwargs):
+    def get_expected_values(self,
+                            target: str,
+                            night: datetime.date,
+                            *args, **kwargs):
         expectations = {
             "bias": {
                 "instrument": self.info["id_instrument"],
@@ -518,12 +534,8 @@ class Instrument(metaclass=abc.ABCMeta):
                                         j = i
                         if j is None:
                             # We still don't find any files
-                            logger.warning(
-                                "Could not find any files for step '%s' in any night with settings %s, sharing parameters %s",
-                                step,
-                                setting,
-                                self.shared,
-                            )
+                            logger.warning(f"Could not find any files for step '{step}' in any night "
+                                           f"with settings {setting}, sharing parameters {self.shared}")
                         else:
                             # We found files in a close night
                             closest_key, closest_files = step_data[j]
@@ -546,7 +558,7 @@ class Instrument(metaclass=abc.ABCMeta):
         return files
 
     def sort_files(
-        self, input_dir, target, night, *args, allow_calibration_only=False, **kwargs
+            self, input_dir, target, night, *args, allow_calibration_only=False, **kwargs
     ):
         """
         Sort a set of fits files into different categories
@@ -600,12 +612,7 @@ class Instrument(metaclass=abc.ABCMeta):
         specifier = header.get(info.get("wavecal_specifier", ""), "")
         instrument = "wavecal"
 
-        cwd = os.path.dirname(__file__)
-        fname = "{instrument}_{mode}_{specifier}.npz".format(
-            instrument=instrument.lower(), mode=mode, specifier=specifier
-        )
-        fname = os.path.join(cwd, "..", "wavecal", fname)
-        return fname
+        return Path(__file__).parents[1] / "wavecal", f"wavecal_{mode}_{specifier}.npz"
 
     def get_supported_modes(self):
         info = self.load_info()

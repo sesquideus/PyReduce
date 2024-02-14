@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import glob
@@ -54,24 +55,24 @@ class Reducer:
     }
 
     def __init__(self,
-                 files,
-                 output_dir,
-                 target,
+                 files: dict[str, str],
+                 output_dir_template: str,
+                 target: str,
                  instrument: Instrument,
                  mode: str,
-                 night,
-                 config,
+                 night: datetime.date,
+                 config: dict,
                  *,
                  order_range=None,
-                 skip_existing=False):
+                 skip_existing: bool = False):
         """Reduce all observations from a single night and instrument mode
 
         Parameters
         ----------
         files: dict{str:str}
             Data files for each step
-        output_dir : str
-            directory to place output files in
+        output_dir_template : str
+            directory to place output files in, should contain placeholders
         target : str
             observed targets as used in directory names/fits headers
         instrument : str
@@ -89,24 +90,26 @@ class Reducer:
         """
         # dict(str:str): Filenames sorted by usecase
         self.files = files
-        self.output_dir = output_dir.format(
-            instrument=str(instrument), target=target, night=night, mode=mode
-        )
+        self.output_dir = output_dir_template.format(instrument=str(instrument),
+                                                     target=target,
+                                                     night=night,
+                                                     mode=mode)
 
         if isinstance(instrument, str):
             instrument = load_instrument(instrument)
 
         self.data = {"files": files, "config": config}
-        self.inputs = (instrument, mode, target, night, output_dir, order_range)
+        self.inputs = (instrument, mode, target, night, output_dir_template, order_range)
         self.config = config
         self.skip_existing = skip_existing
 
-    def run_module(self, step, load=False):
+    def run_module(self, step: str, load: bool = False):
         # The Module this step is based on (an object of the Step class)
         module = self.modules[step](*self.inputs, **self.config.get(step, {}))
 
         # Load the dependencies necessary for loading/running this step
         dependencies = module.dependsOn if not load else module.loadDependsOn
+
         for dependency in dependencies:
             if dependency not in self.data.keys():
                 self.data[dependency] = self.run_module(dependency, load=True)
@@ -117,16 +120,13 @@ class Reducer:
         # But give a warning
         if load:
             try:
-                logger.info("Loading data from step '%s'", step)
+                logger.info(f"Loading data from step '{step}'")
                 data = module.load(**kwargs)
             except FileNotFoundError:
-                logger.warning(
-                    "Intermediate File(s) for loading step %s not found. Running it instead.",
-                    step,
-                )
+                logger.warning(f"Intermediate file(s) for loading step {step} not found. Running it instead.")
                 data = self.run_module(step, load=False)
         else:
-            logger.info("Running step '%s'", step)
+            logger.info(f"Running step '{step}'")
             if step in self.files.keys():
                 kwargs["files"] = self.files[step]
             data = module.run(**kwargs)
