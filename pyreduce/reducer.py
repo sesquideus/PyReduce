@@ -13,7 +13,7 @@ from pyreduce.steps import (Step, ExtractionStep, CalibrationStep,
                             ContinuumNormalization, LaserFrequencyCombMaster, LaserFrequencyCombFinalize,
                             WavelengthCalibrationInitialize, WavelengthCalibrationMaster, WavelengthCalibrationFinalize)
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class Reducer:

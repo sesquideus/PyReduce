@@ -7,7 +7,6 @@ del get_versions
 
 # add logger to console
 import logging
-
 import tqdm
 
 
@@ -27,7 +26,7 @@ class TqdmLoggingHandler(logging.Handler):
             self.handleError(record)
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 logging.captureWarnings(True)
 

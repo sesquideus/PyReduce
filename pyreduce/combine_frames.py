@@ -21,7 +21,7 @@ from .instruments.instrument_info import load_instrument
 from .util import gaussbroad, gaussfit, remove_bias
 from .instruments import Instrument
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def running_median(arr, size):
@@ -242,7 +242,8 @@ def combine_frames(
         combined image data, header
     """
 
-    assert isinstance(files, list), "A list of files is expected as an input"
+    assert isinstance(files, np.ndarray), \
+           f"An array of files is expected as an input, got {type(files)}"
     assert isinstance(instrument, Instrument), "All instruments should be Instrument instances at this stage"
 
     logger.debug(f"Combining frames for instrument {instrument.name} in mode {mode} for files {files}")

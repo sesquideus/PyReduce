@@ -7,7 +7,7 @@ import pyreduce
 from pyreduce import echelle, util
 from .step import Step
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class Finalize(Step):

@@ -18,7 +18,7 @@ from scipy.signal import find_peaks, peak_widths
 
 from .util import polyfit1d
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def fit(x, y, deg: str | int, regularization=0):

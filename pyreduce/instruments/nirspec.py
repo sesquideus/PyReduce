@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 from .common import Instrument, getter, observation_date_to_night
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class NIRSPEC(Instrument):

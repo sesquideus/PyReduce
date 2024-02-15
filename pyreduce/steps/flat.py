@@ -6,7 +6,7 @@ from os.path import join
 
 from .calibration import CalibrationStep
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class Flat(CalibrationStep):

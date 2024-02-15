@@ -21,7 +21,7 @@ from scipy.special import binom
 from . import __version__
 from .clipnflip import clipnflip
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class ConfigurationError(Exception):

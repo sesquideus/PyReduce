@@ -14,7 +14,7 @@ import numpy as np
 from .common import Instrument
 from .filters import Filter, InstrumentFilter, NightFilter, ObjectFilter
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class TypeFilter(Filter):

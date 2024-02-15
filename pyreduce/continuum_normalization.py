@@ -13,7 +13,7 @@ import numpy as np
 
 from . import util
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 # np.seterr("raise")
 

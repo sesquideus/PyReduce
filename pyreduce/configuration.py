@@ -14,7 +14,7 @@ from os.path import dirname, join
 
 import jsonschema
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 if int(jsonschema.__version__[0]) < 3:  # pragma: no cover
     logger.warning(
@@ -111,6 +111,7 @@ def update(dict1, dict2, check=True, name="dict1"):
     KeyError
         If dict2 contains a key that is not in dict1
     """
+    # TODO: See if this cannot be converted to new | syntax for dicts
     # Instrument is a 'special' section as it may include any number of values
     # In that case we don't want to raise an error for new keys
     exclude = ["instrument"]
@@ -133,7 +134,7 @@ def read_config(fname="settings_pyreduce.json"):
     Parameters
     ----------
     fname : str, optional
-        Filename of the configuration. By default "settings_pyreduce.json",
+        Filename of the configuration. Default "settings_pyreduce.json",
         i.e. the default configuration
 
     Returns

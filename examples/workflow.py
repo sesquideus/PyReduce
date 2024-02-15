@@ -1,6 +1,5 @@
 import abc
 import datetime
-from pathlib import Path
 
 import pyreduce
 
@@ -15,9 +14,9 @@ class Workflow(metaclass=abc.ABCMeta):
     mode: str = None
     steps: list = []
     order_range: tuple[int, int] = (0, 0)
-    base_dir_template: str | Path = None
-    input_dir_template: str | Path = None
-    output_dir_template: str | Path = None
+    base_dir_template: str = None
+    input_dir_template: str = None
+    output_dir_template: str = None
     debug: bool = False
 
     def __init__(self):
@@ -27,7 +26,7 @@ class Workflow(metaclass=abc.ABCMeta):
         pass
 
     def process(self):
-        self.configuration = pyreduce.configuration.get_configuration_for_instrument(self.instrument, plot=1),
+        self.configuration = pyreduce.configuration.get_configuration_for_instrument(self.instrument, plot=1)
         self.override_configuration()
 
         return pyreduce.reduce.main(
@@ -43,4 +42,3 @@ class Workflow(metaclass=abc.ABCMeta):
             order_range=self.order_range,
             debug=self.debug,
         )
-

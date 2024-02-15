@@ -16,7 +16,7 @@ from dateutil import parser
 from .common import Instrument, getter, observation_date_to_night
 from .filters import Filter
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class CRIRES_PLUS(Instrument):

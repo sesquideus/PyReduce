@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.ndimage import median_filter
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 try:
     from .clib._slitfunc_2d import lib as slitfunc_2dlib
@@ -148,7 +148,7 @@ def slitfunc_curved(
         Subpixel ovsersampling factor (the default is 1, no oversampling)
     lambda_sp : float
         smoothing factor spectrum (the default is 0, no smoothing)
-    lambda_sl : float
+    lambda_sf : float
         smoothing factor slitfunction (the default is 0.1, small smoothing)
     yrange : array[2]
         number of pixels below and above the central line that have been cut out

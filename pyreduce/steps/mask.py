@@ -2,7 +2,7 @@ import logging
 
 from .step import Step
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class Mask(Step):

@@ -31,7 +31,7 @@ from .extract import fix_parameters
 from .util import make_index
 from .util import polyfit2d_2 as polyfit2d
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class ProgressPlot:  # pragma: no cover

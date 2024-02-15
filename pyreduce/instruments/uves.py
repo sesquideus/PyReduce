@@ -10,7 +10,7 @@ from pathlib import Path
 
 from .common import Instrument
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class UVES(Instrument):

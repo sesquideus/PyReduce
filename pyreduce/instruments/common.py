@@ -22,7 +22,7 @@ from ..clipnflip import clipnflip
 from .filters import Filter, InstrumentFilter, ModeFilter, NightFilter, ObjectFilter
 from ..util import ConfigurationError
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def find_first_index(arr, value):
@@ -550,11 +550,7 @@ class Instrument(metaclass=abc.ABCMeta):
             if any([len(a) > 0 for a in f.values()]):
                 files.append((setting, f))
         if len(files) == 0:
-            logger.warning(
-                "No %s files found matching the expected values %s",
-                self.science,
-                expected[self.science],
-            )
+            logger.warning(f"No {self.science} files found matching the expected values {expected[self.science]}")
         return files
 
     def sort_files(

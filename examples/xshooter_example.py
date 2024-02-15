@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 Simple usage example for PyReduce
 Loads a sample UVES dataset, and runs the full extraction
 """
 
-import os.path
+from pathlib import Path
 
-from pyreduce import datasets
+from pyreduce.datasets import DatasetXSHOOTER
 from workflow import Workflow
 
 
@@ -17,7 +16,7 @@ class WorkflowXShooter(Workflow):
     mode = "NIR"
     steps = ["bias", "flat", "orders", "scatter", "norm_flat",
              "curvature", "wavecal", "science", "continuum", "finalize"]
-    base_dir_template = datasets.UVES(os.path.expanduser("~") + "/PyReduce/DATA")
+    base_dir_template = DatasetXSHOOTER(local_dir_template=Path("~").expanduser() / "PyReduce" / "DATA").local_dir_template
     input_dir_template = "raw/"
     output_dir_template = "reduced/"
     order_range = (0, 15)

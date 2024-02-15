@@ -25,7 +25,7 @@ from tqdm import tqdm
 from .cwrappers import slitfunc, slitfunc_curved
 from .util import make_index, resample
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class ProgressPlot:  # pragma: no cover
@@ -388,7 +388,7 @@ def fix_extraction_width(xwd, orders, cr, ncol):
     return xwd
 
 
-def fix_column_range(column_range, orders, extraction_width, nrow, ncol):
+def fix_column_range(column_range, orders, extraction_width, nrow: int, ncol: int):
     """Fix the column range, so that no pixels outside the image will be accessed (Thus avoiding errors)
 
     Parameters

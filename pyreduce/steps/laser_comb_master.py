@@ -7,7 +7,7 @@ from astropy.io import fits
 from .calibration import CalibrationStep
 from .extraction import ExtractionStep
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class LaserFrequencyCombMaster(CalibrationStep, ExtractionStep):

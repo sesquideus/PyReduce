@@ -13,7 +13,7 @@ from dateutil import parser
 
 from .common import Instrument, getter, observation_date_to_night
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class JWST_MIRI(Instrument):

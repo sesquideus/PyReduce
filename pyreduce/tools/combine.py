@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from .. import echelle
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def combine(files, output, plot=None):

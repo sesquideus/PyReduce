@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Provides example datasets for the examples
 
@@ -7,189 +6,99 @@ if data needs to be downloaded
 """
 import abc
 import logging
-import os
 import tarfile
 from pathlib import Path
-from os.path import dirname, isfile, join
 
 import wget
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class Dataset(metaclass=abc.ABCMeta):
-    name: str = None
+    server_url: str = r"http://sme.astro.uu.se/pyreduce/"
+    instrument_name: str = None
+    _local_dir_template: str = None
+    _data_dir: Path = None
 
-    def __init__(self, name):
-        self.name = name
+    @property
+    def local_dir_template(self) -> str:
+        return self._local_dir_template
 
-    def load_data_from_server(self, filename, directory: Path):
-        server_url = r"http://sme.astro.uu.se/pyreduce/"
-        wget.download(f"{server_url}{filename}", out=directory / filename)
+    @property
+    def data_dir(self) -> Path:
+        return self._data_dir
 
-    def get_dataset(self, name, *, local_dir: Path | None = None):
-        if local_dir is None:
-            # If no local dir is provided, use the parent of current file
-            local_dir = Path(__file__).parent
+    def load_data_from_server(self, filename: str, directory: Path) -> None:
+        wget.download(f"{Dataset.server_url}{filename}", out=str(directory / filename))
+
+    def __init__(self, *, local_dir_template: str | None = None):
+        """
+        Load a dataset
+
+        Note
+        ----
+        This method will not override existing files with the same
+        name, even if they have a different content. Therefore,
+        if the files were changed for any reason, the user has to
+        manually delete them from the disk before using this method.
+
+        Parameters
+        ----------
+        local_dir_template : str, optional
+            directory to save data at (default: "./")
+
+        Returns
+        -------
+        dataset_dir : str
+            directory where the data was saved
+        """
+        # If no local dir is provided, use the parent of current file
+        self._local_dir_template = local_dir_template if local_dir_template is not None else Path(__file__).parent.name
 
         # Load data if necessary
-        fname = f"{name}.tar.gz"
-        data_dir = local_dir / "datasets" / name
-        filename = data_dir / fname
+        fname = f"{self.instrument_name}.tar.gz"
+        self._data_dir = Path(local_dir_template) / "datasets" / self.instrument_name
+        filename = self.data_dir / fname
 
-        data_dir.mkdir(parents=True, exist_ok=True)
+        self._data_dir.mkdir(parents=True, exist_ok=True)
         if filename.is_file():
-            logger.info(f"Using existing dataset {name} from {filename.name}")
+            logger.info(f"Using existing dataset {self.instrument_name} from {filename}")
         else:
-            logger.info(f"Downloading dataset {name}")
-            logger.info(f"Data is stored at {data_dir}")
-            self.load_data_from_server(fname, data_dir)
+            logger.info(f"Dataset {self.instrument_name} does not exist at {filename}, downloading to {self.data_dir}")
+            self.load_data_from_server(fname, self.data_dir)
 
         # Extract the downloaded .tar.gz file
         with tarfile.open(filename) as file:
-            raw_dir = data_dir / "raw"
+            raw_dir = self.data_dir / "raw"
             names = [f for f in file if not (raw_dir / f.name).is_file()]
             if len(names) != 0:
-                logger.info("Extracting data from tarball")
+                logger.info(f"Extracting data from tarball {file.name}")
                 file.extractall(path=raw_dir, members=names)
 
-        return data_dir
+
+class DatasetUVES(Dataset):  # pragma: no cover
+    instrument_name: str = "UVES"
+    target: str = "HD132205"
 
 
-def load_data_from_server(filename, directory):
-    server = r"http://sme.astro.uu.se/pyreduce/"
-    url = server + filename
-    directory = join(directory, filename)
-    wget.download(url, out=directory)
+class DatasetHARPS(Dataset):  # pragma: no cover
+    instrument_name: str = "HARPS"
+    target: str = "HD109200"
 
 
-def get_dataset(name, local_dir=None):
-    """Load a dataset
-
-    Note
-    ----
-    This method will not override existing files with the same
-    name, even if they have a different content. Therefore
-    if the files were changed for any reason, the user has to
-    manually delete them from the disk before using this method.
-
-    Parameters
-    ----------
-    name : str
-        Name of the dataset
-    local_dir : str, optional
-        directory to save data at (default: "./")
-
-    Returns
-    -------
-    dataset_dir : str
-        directory where the data was saved
-    """
-
-    if local_dir is None:
-        local_dir = dirname(__file__)
-        local_dir = join(local_dir, "../")
-
-    # load data if necessary
-    fname = f"{name}.tar.gz"
-    data_dir = join(local_dir, "datasets", name)
-    filename = join(data_dir, fname)
-
-    os.makedirs(data_dir, exist_ok=True)
-    if not os.path.isfile(filename):
-        logger.info("Downloading dataset %s", name)
-        logger.info("Data is stored at %s", data_dir)
-        load_data_from_server(fname, data_dir)
-    else:
-        logger.info("Using existing dataset %s", name)
-
-    # Extract the downloaded .tar.gz file
-    with tarfile.open(filename) as file:
-        raw_dir = join(data_dir, "raw")
-        names = [f for f in file if not isfile(join(raw_dir, f.name))]
-        if len(names) != 0:
-            logger.info("Extracting data from tarball")
-            file.extractall(path=raw_dir, members=names)
-
-    return data_dir
+class DatasetLICK_APF(Dataset):  # pragma: no cover
+    instrument_name: str = "LICK_APF"
+    target: str = "KIC05005618"
 
 
-def UVES(local_dir=None):  # pragma: no cover
-    """Load an example dataset
-    instrument: UVES
-    target: HD132205
-
-    Parameters
-    ----------
-    local_dir : str, optional
-        directory to save data at (default: "./")
-
-    Returns
-    -------
-    dataset_dir : str
-        directory where the data was saved
-    """
-
-    return get_dataset("UVES", local_dir)
+class DatasetMCDONALD(Dataset):  # pragma: no cover
+    instrument: str = "JWST_MIRI"
+    target: str = "?"
 
 
-def HARPS(local_dir=None):  # pragma: no cover
-    """Load an example dataset
-    instrument: HARPS
-    target: HD109200
-
-    Parameters
-    ----------
-    local_dir : str, optional
-        directory to save data at (default: "./")
-
-    Returns
-    -------
-    dataset_dir : str
-        directory where the data was saved
-    """
-
-    return get_dataset("HARPS", local_dir)
-
-
-def LICK_APF(local_dir=None):  # pragma: no cover
-    """Load an example dataset
-    instrument: LICK_APF
-    target: KIC05005618
-
-    Parameters
-    ----------
-    local_dir : str, optional
-        directory to save data at (default: "./")
-
-    Returns
-    -------
-    dataset_dir : str
-        directory where the data was saved
-    """
-
-    return get_dataset("APF", local_dir)
-
-
-def MCDONALD(local_dir=None):  # pragma: no cover
-    """Load an example dataset
-    instrument: JWST_MIRI
-    target: ?
-
-    Data simulated with MIRIsim
-
-    Parameters
-    ----------
-    local_dir : str, optional
-        directory to save data at (default: "./")
-
-    Returns
-    -------
-    dataset_dir : str
-        directory where the data was saved
-    """
-
-    return get_dataset("MCDONALD", local_dir)
+class DatasetXSHOOTER(Dataset):  # pragma: no cover
+    instrument_name: str = "XSHOOTER"
+    target: str = "Ux-Ori"
 
 
 def JWST_MIRI(local_dir=None):  # pragma: no cover
@@ -252,21 +161,3 @@ def KECK_NIRSPEC(local_dir=None):  # pragma: no cover
 
     return get_dataset("NIRSPEC", local_dir)
 
-
-def XSHOOTER(local_dir=None):  # pragma: no cover
-    """Load an example dataset
-    instrument: XSHOOTER
-    target: Ux-Ori
-
-    Parameters
-    ----------
-    local_dir : str, optional
-        directory to save data at (default: "./")
-
-    Returns
-    -------
-    dataset_dir : str
-        directory where the data was saved
-    """
-
-    return get_dataset("XSHOOTER", local_dir)

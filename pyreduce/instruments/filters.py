@@ -9,19 +9,19 @@ from astropy import units as u
 from astropy.time import Time
 from dateutil import parser
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class Filter:
     def __init__(
         self,
-        keyword,
-        dtype="U20",
-        wildcards=False,
-        regex=False,
-        flags=0,
-        unique=True,
-        ignorecase=True,
+        keyword: str,
+        dtype: str | type = "U20",
+        wildcards: bool = False,
+        regex: bool = False,
+        flags: int = 0,
+        unique: bool = True,
+        ignorecase: bool = True,
     ):
         self.keyword = keyword
         self.dtype = dtype
@@ -171,7 +171,7 @@ class ModeFilter(Filter):
         flags=0,
         unique=True,
         ignorecase=True,
-        replacement={},
+        replacement: str | None = None,
     ):
         super().__init__(
             keyword,
@@ -182,7 +182,7 @@ class ModeFilter(Filter):
             unique=unique,
             ignorecase=ignorecase,
         )
-        self.replacement = replacement
+        self.replacement = replacement if replacement is not None else {}
 
     def classify(self, value):
         data = super().classify(value)

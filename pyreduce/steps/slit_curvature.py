@@ -6,7 +6,7 @@ from pyreduce.make_shear import Curvature as CurvatureModule
 from .calibration import CalibrationStep
 from .extraction import ExtractionStep
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class SlitCurvatureDetermination(CalibrationStep, ExtractionStep):

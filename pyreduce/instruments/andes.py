@@ -15,7 +15,7 @@ from pathlib import Path
 from .common import Instrument, getter, observation_date_to_night
 from .filters import Filter
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class ANDES(Instrument):

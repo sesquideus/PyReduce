@@ -7,7 +7,7 @@ from astropy.io import fits
 from pyreduce.combine_frames import combine_bias, combine_polynomial
 from .step import Step
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class Bias(Step):

@@ -24,7 +24,7 @@ from tqdm import tqdm
 
 from . import util
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def polyfit(x, y, deg):

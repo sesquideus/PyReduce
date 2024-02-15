@@ -39,7 +39,7 @@ from .reducer import Reducer
 # TODO License
 
 # TODO automatic determination of the extraction width
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def main(instrument_name: str,
@@ -107,9 +107,9 @@ def main(instrument_name: str,
 
     # If there is a single night, create a length-1 list from it
     if isinstance(night, datetime.date):
-        nights = [night]
+        nights = [str(night)]
     else:
-        nights = night
+        nights = list(map(str, night))
 
     is_none = {
         "modes": modes is None,
@@ -143,7 +143,11 @@ def main(instrument_name: str,
         output_dir_template = config["reduce"]["output_dir"]
 
     input_dir_template: str = os.path.join(base_dir_template, input_dir_template)
+    logger.info(f"input_dir_template is \"{input_dir_template}\"")
+
     output_dir_template: str = os.path.join(base_dir_template, output_dir_template)
+    logger.info(f"output_dir_template is \"{output_dir_template}")
+
 
     if modes is None:
         modes = info["modes"]

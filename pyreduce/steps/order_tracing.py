@@ -6,7 +6,7 @@ from pyreduce.trace_orders import mark_orders
 from .calibration import CalibrationStep
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class OrderTracing(CalibrationStep):

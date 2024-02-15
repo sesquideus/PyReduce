@@ -8,7 +8,7 @@ from .util import gaussfit4 as gaussfit
 from .util import gaussval2 as gaussval
 from .util import make_index
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def estimate_extraction_width(
