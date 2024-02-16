@@ -18,7 +18,6 @@ class WorkflowXShooter(Workflow):
     mode: str = "NIR"
     steps: list[str] = ["bias", "flat", "orders", "scatter", "norm_flat",
                         "curvature", "wavecal", "science", "continuum", "finalize"]
-    local_dir: Path = Path("~/astar/pyreduce/data/").expanduser()
     input_dir_template: str = "raw/"
     output_dir_template: str = "reduced/"
     order_range: tuple[int, int] = (0, 15)
@@ -30,7 +29,7 @@ class WorkflowXShooter(Workflow):
 
 
 # some basic settings
-# Expected Folder Structure: base_dir/datasets/HD132205/*.fits.gz
+# Expected Folder Structure: base_dir/datasets/Ux-Ori/*.fits.gz
 # Feel free to change this to your own preference, values in curly brackets will be replaced with the actual values {}
 
 

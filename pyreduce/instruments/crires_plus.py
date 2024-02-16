@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 """
-Handles instrument specific info for the HARPS spectrograph
-
+Handles instrument specific info for CRyogenic InfraRed Echelle Spectrograph upgrade (CRIRES Plus)
 Mostly reading data from the header
 """
+import datetime
 import logging
 import os.path
 import re
@@ -11,12 +10,12 @@ from itertools import product
 
 import numpy as np
 from astropy.io import fits
-from dateutil import parser
+from pathlib import Path
 
 from .common import Instrument, HeaderGetter, observation_date_to_night
 from .filters import Filter
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class CRIRES_PLUS(Instrument):
@@ -46,7 +45,9 @@ class CRIRES_PLUS(Instrument):
         ]
         return modes
 
-    def parse_mode(self, mode):
+    @staticmethod
+    def parse_mode(mode):
+        #pattern = r"(?P<band>[YJHKLM]\d{4})(_(?P<decker>Open|pos1|pos2))?_det(?P<detector>\d)"
         pattern = r"([YJHKLM]\d{4})(_(Open|pos1|pos2))?_det(\d)"
         match = re.match(pattern, mode, flags=re.IGNORECASE)
         band = match.group(1).upper()
@@ -57,7 +58,7 @@ class CRIRES_PLUS(Instrument):
         detector = match.group(4)
         return band, decker, detector
 
-    def get_expected_values(self, target, night, mode):
+    def get_expected_values(self, target: str, night: datetime.date, mode: str):
         expectations = super().get_expected_values(target, night)
         band, decker, detector = self.parse_mode(mode)
 
@@ -69,17 +70,14 @@ class CRIRES_PLUS(Instrument):
 
         return expectations
 
-    def get_extension(self, header, mode):
+    def get_extension(self, header: fits.Header, mode: str):
         band, decker, detector = self.parse_mode(mode)
         extension = int(detector)
         return extension
 
-    def get_wavecal_filename(self, header, mode, **kwargs):
+    def get_wavecal_filename(self, header: fits.Header, mode: str, **kwargs):
         """Get the filename of the wavelength calibration config file"""
-        cwd = os.path.dirname(__file__)
-        fname = "{instrument}_{mode}.npz".format(instrument=self.name, mode=mode)
-        fname = os.path.join(cwd, "..", "wavecal", fname)
-        return fname
+        return Path(__file__).parents[1] / "wavecal" / f"{self.name}_{mode}.npz"
 
     def get_mask_filename(self, mode, **kwargs):
         i = self.name.lower()

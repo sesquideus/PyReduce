@@ -4,17 +4,16 @@ Handles instrument specific info for the METIS LSS spectrograph
 Mostly reading data from the header
 """
 import os.path
-import glob
 import logging
-from datetime import datetime
-
 import numpy as np
+
 from astropy.io import fits
 from dateutil import parser
+from pathlib import Path
 
 from .common import HeaderGetter, InstrumentWithModes, Instrument, observation_date_to_night
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class METIS(InstrumentWithModes):
@@ -35,17 +34,8 @@ class METIS(InstrumentWithModes):
         return header
 
     def get_extension(self, header, mode):
-        extension=1
-
-        return extension
+        return 1
 
     def get_wavecal_filename(self, header, mode, **kwargs):
         """ Get the filename of the wavelength calibration config file """
-        # info = self.load_info()
-        cwd = os.path.dirname(__file__)
-        fname = f"metis_{mode.lower()}_2D.npz"
-        # fname = f"metis_LSS_L_2D.npz" ## f"micado_IJ_2D_det1.npz"
-        fname = os.path.join(cwd, "..", "wavecal", fname)
-
-
-        return fname
+        return Path(__file__).parents[1] / "wavecal", f"metis_{mode.lower()}_2D.npz"

@@ -39,7 +39,7 @@ from .reducer import Reducer
 # TODO License
 
 # TODO automatic determination of the extraction width
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def main(instrument_name: str,
@@ -98,6 +98,7 @@ def main(instrument_name: str,
     """
 
     logger.setLevel(logging.DEBUG if debug else logging.INFO)
+    logger.debug(f"Running main for target '{target}' on nights '{night}'")
 
     # If there is a single target, create a length-1 list from it
     if isinstance(target, str):
@@ -106,7 +107,9 @@ def main(instrument_name: str,
         targets = target
 
     # If there is a single night, create a length-1 list from it
-    if isinstance(night, datetime.date):
+    if night is None:
+        nights = []
+    elif isinstance(night, datetime.date):
         nights = [str(night)]
     else:
         nights = list(map(str, night))

@@ -4,9 +4,11 @@ import datetime
 import logging
 import typing
 
+from pathlib import Path
+
 import pyreduce
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Workflow(metaclass=abc.ABCMeta):
@@ -20,7 +22,7 @@ class Workflow(metaclass=abc.ABCMeta):
     steps: list = []
     order_range: tuple[int, int] = (0, 0)
     dataset_class: typing.ClassVar = None
-    local_dir: str = None
+    local_dir: Path = Path("~/astar/pyreduce/data/").expanduser()
     base_dir_template: str = None
     input_dir_template: str = None
     output_dir_template: str = None

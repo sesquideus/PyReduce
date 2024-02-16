@@ -20,3 +20,9 @@ from .laser_comb_finalize import LaserFrequencyCombFinalize
 from .normalize_flatfield import NormalizeFlatField
 from .science import ScienceExtraction
 from .rectify import RectifyImage
+
+__all__ = ['Step', 'CalibrationStep', 'ExtractionStep',
+           'Bias', 'Flat', 'Mask', 'Finalize', 'OrderTracing', 'BackgroundScatter', 'ContinuumNormalization',
+           'SlitCurvatureDetermination', 'WavelengthCalibrationInitialize', 'WavelengthCalibrationMaster',
+           'WavelengthCalibrationFinalize', 'LaserFrequencyCombMaster', 'LaserFrequencyCombFinalize',
+           'NormalizeFlatField', 'ScienceExtraction', 'RectifyImage']

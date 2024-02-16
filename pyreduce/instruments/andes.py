@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Handles instrument specific info for the HARPS spectrograph
-
+Handles instrument specific info for the ArmazoNes high Dispersion Echelle Spectrograph (ANDES)
 Mostly reading data from the header
 """
 import logging
@@ -11,11 +10,12 @@ import numpy as np
 
 from itertools import product
 from pathlib import Path
+from astropy.io import fits
 
 from .common import Instrument, HeaderGetter, observation_date_to_night
 from .filters import Filter
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class ANDES(Instrument):
@@ -30,11 +30,8 @@ class ANDES(Instrument):
         """read data from header and add it as REDUCE keyword back to the header"""
         # "Normal" stuff is handled by the general version, specific changes to values happen here
         # alternatively you can implement all of it here, whatever works
-        band, decker, detector = self.parse_mode(mode)
-        header = super().add_header_info(header, band)
-        info = self.load_info()
-
-        return header
+        band, _, _ = self.parse_mode(mode)
+        return super().add_header_info(header, band)
 
     def get_supported_modes(self):
         settings = self.info["settings"]
@@ -42,7 +39,7 @@ class ANDES(Instrument):
         detectors = self.info["chips"]
         return ["_".join([s, d, c]) for s, d, c in product(settings, deckers, detectors)]
 
-    def parse_mode(self, mode) -> tuple:
+    def parse_mode(self, mode: str) -> tuple[str, str, str]:
         pattern = r"([YJHKLM]\d{4})(_(Open|pos1|pos2))?_det(\d)"
         match = re.match(pattern, mode, flags=re.IGNORECASE)
         band = match.group(1).upper()
@@ -70,12 +67,8 @@ class ANDES(Instrument):
         extension = int(detector)
         return extension
 
-    def get_wavecal_filename(self, header, mode, **kwargs):
+    def get_wavecal_filename(self, header: fits.Header, mode: str, **kwargs):
         """Get the filename of the wavelength calibration config file"""
-        cwd = os.path.dirname(__file__)
-        fname = "{instrument}_{mode}.npz".format(instrument=self.name, mode=mode)
-        fname = os.path.join(cwd, "..", "wavecal", fname)
-
         return Path(__file__).parents[1] / "wavecal" / f"{self.name}_{mode}.npz"
 
     def get_mask_filename(self, mode, **kwargs):

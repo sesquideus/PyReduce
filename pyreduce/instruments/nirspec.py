@@ -13,11 +13,12 @@ import numpy as np
 from astropy.coordinates import EarthLocation
 from astropy.io import fits
 from dateutil import parser
+from pathlib import Path
 from tqdm import tqdm
 
 from .common import Instrument, HeaderGetter, observation_date_to_night
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class NIRSPEC(Instrument):
@@ -32,21 +33,16 @@ class NIRSPEC(Instrument):
             return ""
 
         # TODO get other settings
-        if filter == "NIRSPEC-1":
-            raise ValueError
-        elif filter == "NIRSPEC-2":
-            raise ValueError
-        elif filter == "NIRSPEC-4":
-            raise ValueError
-        elif filter == "NIRSPEC-5":
-            raise ValueError
-        elif filter == "NIRSPEC-7":
-            if fil1pos == 11 and fil2pos == 18:
-                setting = "K2"
-            else:
+        match filter:
+            case "NIRSPEC-1", "NIRSPEC-2", "NIRSPEC-4", "NIRSPEC-5":
+                raise ValueError(f"Unsupported filter '{filter}'")
+            case "NIRSPEC-7":
+                if fil1pos == 11 and fil2pos == 18:
+                    setting = "K2"
+                else:
+                    raise ValueError
+            case _:
                 raise ValueError
-        else:
-            raise ValueError
 
         return setting
 
@@ -211,7 +207,4 @@ class NIRSPEC(Instrument):
 
         echelle_setting = "K2"
 
-        cwd = os.path.dirname(__file__)
-        fname = f"nirspec_{echelle_setting}.npz"
-        fname = os.path.join(cwd, "..", "wavecal", fname)
-        return fname
+        return Path(__file__).parents[1] / "wavecal" / f"nirspec_{echelle_setting}.npz"

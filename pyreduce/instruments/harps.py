@@ -1,19 +1,20 @@
-# -*- coding: utf-8 -*-
 """
 Handles instrument specific info for the HARPS spectrograph
-
 Mostly reading data from the header
 """
+import datetime
 import logging
 import re
 import numpy as np
 
 from pathlib import Path
+from astropy.io import fits
+from typing import overload
 
 from .common import Instrument
 from .filters import Filter, InstrumentFilter, NightFilter, ObjectFilter
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class TypeFilter(Filter):
@@ -66,17 +67,19 @@ class PolarizationFilter(Filter):
     def __init__(self, keyword="ESO INS RET?? POS"):
         super().__init__(keyword, regex=True)
 
-    def collect(self, header):
+    def collect(self, header: fits.Header) -> str:
         dpr_type = header.get("ESO DPR TYPE", "")
-        match = re.match(r"^.*,(CIR|LIN)POL,.*$", dpr_type)
-        if match is None:
-            value = "none"
-        elif match.group(1) == "CIR":
-            value = "circular"
-        elif match.group(1) == "LIN":
-            value = "linear"
-        else:
-            raise ValueError("Polarization not recognised")
+
+        match (pol := re.search(r",(?P<pol>CIR|LIN)POL,$", dpr_type).group('pol')):
+            case None:
+                value = "none"
+            case "CIR":
+                value = "circular"
+            case "LIN":
+                value = "linear"
+            case _:
+                raise ValueError("Polarization type not recognized, expected one of ['circular', 'linear'] "
+                                 f"or nothing, but got '{pol}'")
         self.data.append(value)
         return value
 
@@ -88,9 +91,7 @@ class HARPS(Instrument):
             "instrument": InstrumentFilter(self.info["instrument"]),
             "night": NightFilter(self.info["date"]),
             # "branch": Filter(, regex=True),
-            "mode": Filter(
-                self.info["instrument_mode"], regex=True, flags=re.IGNORECASE
-            ),
+            "mode": Filter(self.info["instrument_mode"], regex=True, flags=re.IGNORECASE),
             "type": TypeFilter(self.info["observation_type"]),
             "polarization": PolarizationFilter(),
             "target": ObjectFilter(self.info["target"], regex=True),
@@ -109,7 +110,12 @@ class HARPS(Instrument):
             "curvature",
         ]
 
-    def get_expected_values(self, target, night, mode, fiber, polarimetry):
+    def get_expected_values(self,
+                            target: str,
+                            night: datetime.date,
+                            mode: str,
+                            fiber: str,
+                            polarimetry: str | bool):
         """Determine the default expected values in the headers for a given observation configuration
 
         Any parameter may be None, to indicate that all values are allowed
@@ -125,13 +131,13 @@ class HARPS(Instrument):
         polarimetry : "none", "linear", "circular", bool
             Whether the instrument is used in HARPS or HARPSpol mode
             and which polarization is observed. Set to true for both kinds
-            of polarisation.
+            of polarization.
 
         Returns
         -------
         expectations: dict
             Dictionary of expected header values, with one entry per step.
-            The entries for each step refer to the filters defined in self.filters
+            The entries for each step refer to the filters defined in `self.filters`
 
         Raises
         ------
@@ -143,20 +149,21 @@ class HARPS(Instrument):
         else:
             target = ".*"
 
-        if fiber == "AB":
-            template = r"({a},{a}),{c}"
-        elif fiber == "A":
-            template = r"({a},{b}),{c}"
-        elif fiber == "B":
-            template = r"({b},{a}),{c}"
-        elif fiber is None:
-            template = None
-            fiber = "(AB)|(A)|(B)"
-        else:
-            raise ValueError(
-                "fiber keyword not understood, possible values are 'AB', 'A', 'B'"
-            )
+        match fiber:
+            case "A":
+                template = r"({a},{b}),{c}"
+            case "B":
+                template = r"({b},{a}),{c}"
+            case "AB":
+                template = r"({a},{a}),{c}"
+            case None:
+                template = None
+                fiber = "(AB)|(A)|(B)"
+            case _:
+                raise ValueError("Fiber keyword not understood, possible values are ['A', 'B', 'AB'] "
+                                 f"or nothing, got {fiber}")
 
+        # TODO: Clean this so that only None is accepted. Also True as "both" is ambiguous
         if polarimetry == "none" or not polarimetry:
             mode = "HARPS"
             if template is not None:
@@ -260,8 +267,8 @@ class HARPS(Instrument):
                 pol_angle = "cir %i" % pol_angle
 
             header["e_pol"] = (pol_angle, "polarization angle")
-        except:
-            pass
+        except Exception as exc:
+            logger.error(f"Caught exception {exc} in {self.__class__.__name__}.add_header_info but continuing")
 
         try:
             if (
@@ -284,7 +291,11 @@ class HARPS(Instrument):
 
         return header
 
-    def get_wavecal_filename(self, header, mode, polarimetry, **kwargs) -> Path:
+    def get_wavecal_filename(self,
+                             header: fits.Header,
+                             mode: str,
+                             polarimetry: str | bool,
+                             **kwargs) -> Path:
         """Get the filename of the wavelength calibration config file"""
         pol = "_pol" if polarimetry is not None else ""
         return Path(__file__).parents[1] / "wavecal" / f"harps_{mode.lower()}{pol}_2D.npz"

@@ -22,7 +22,7 @@ from ..clipnflip import clipnflip
 from .filters import Filter, InstrumentFilter, ModeFilter, NightFilter, ObjectFilter
 from ..util import ConfigurationError
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def find_first_index(arr, value):
@@ -133,9 +133,10 @@ class Instrument(metaclass=abc.ABCMeta):
             "spec": Filter(self.info["kw_spec"]),
         }
 
-        self.night = "night"
-        self.science = "science"
-        self.shared = ["instrument", "night"]
+        self.night: str = "night"
+        self.science: str = "science"
+        self.shared: list[str] = ["instrument", "night"]
+        # TODO What does this mean?
         self.find_closest = [
             "bias",
             "flat",
@@ -416,7 +417,7 @@ class Instrument(metaclass=abc.ABCMeta):
         return expectations
 
     def populate_filters(self, files: list[Path]) -> list[Filter]:
-        """Extract values from the fits headers and store them in self.filters
+        """Extract values from the fits headers and store them in `self.filters`
 
         Parameters
         ----------
@@ -530,12 +531,8 @@ class Instrument(metaclass=abc.ABCMeta):
                 if len(f[step]) == 0:
                     if step not in self.find_closest:
                         # Show a warning
-                        logger.warning(
-                            "Could not find any files for step '%s' with settings %s, sharing parameters %s",
-                            step,
-                            setting,
-                            self.shared,
-                        )
+                        logger.warning(f"Could not find any files for step '{step}' with settings {setting}, "
+                                       f"sharing parameters {self.shared}")
                     else:
                         # Or find the closest night instead
                         j = None
