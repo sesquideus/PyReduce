@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import glob
+import typing
 
 from pathlib import Path
 
@@ -35,7 +36,7 @@ class Reducer:
         "finalize": 100,
     }
 
-    modules: dict[str, Step] = {
+    modules: dict[str, typing.ClassVar] = {
         "mask": Mask,
         "bias": Bias,
         "flat": Flat,
@@ -129,6 +130,7 @@ class Reducer:
             logger.info(f"Running step '{step}'")
             if step in self.files.keys():
                 kwargs["files"] = self.files[step]
+
             data = module.run(**kwargs)
 
         self.data[step] = data
@@ -150,6 +152,7 @@ class Reducer:
             "curvature", "science", "continuum", "finalize"
             alternatively set steps to "all", which is equivalent to setting all steps
         """
+
         self.prepare_output_dir()
 
         if steps == "all":

@@ -1,13 +1,14 @@
-import abc
+import datetime
 import logging
 import re
-from datetime import datetime
-from fnmatch import fnmatch
-
 import numpy as np
+
+from fnmatch import fnmatch
 from astropy import units as u
+from astropy.io import fits
 from astropy.time import Time
 from dateutil import parser
+from typing import Any
 
 logger = logging.getLogger()
 
@@ -35,7 +36,7 @@ class Filter:
         if self.ignorecase and not self.flags & re.IGNORECASE:
             self.flags += re.IGNORECASE
 
-    def _collect_value(self, header):
+    def _collect_value(self, header: fits.Header) -> Any:
         if self.keyword is None:
             value = ""
         elif "{" in self.keyword:
@@ -72,7 +73,7 @@ class Filter:
                     regex.match(f) is not None if f is not None else False
                     for f in self.data
                 ]
-            except TypeError as ex:
+            except TypeError as exc:
                 result = [f == value for f in self.data]
         result = np.asarray(result, dtype=bool)
         return result

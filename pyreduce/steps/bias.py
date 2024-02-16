@@ -1,8 +1,10 @@
 import logging
+import pprint
 import numpy as np
 import os
 
 from astropy.io import fits
+from pathlib import Path
 
 from pyreduce.combine_frames import combine_bias, combine_polynomial
 from .step import Step
@@ -26,7 +28,7 @@ class Bias(Step):
         """str: Name of master bias fits file"""
         return os.path.join(self.output_dir, self.prefix + ".bias.fits")
 
-    def run(self, files, mask):
+    def run(self, files: list[Path], mask):
         """Calculate the master bias
 
         Parameters
@@ -43,7 +45,7 @@ class Bias(Step):
         bhead : FITS header
             header of the master bias
         """
-        logger.info("Bias Files: %s", files)
+        logger.info(f"Running {self.__class__.__name__} step with files\n{pprint.pformat(files)}")
 
         if self.degree == 0:
             # If the degree is 0, we just combine all images into a single master bias

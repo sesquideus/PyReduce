@@ -33,9 +33,10 @@ def find_first_index(arr, value):
         raise KeyError("Value %s not found" % value)
 
 
-def observation_date_to_night(observation_date):
+def observation_date_to_night(observation_date: datetime.date) -> datetime.date | None:
     """Convert an observation timestamp into the date of the observation night
     Nights start at 12am and end at 12 am the next day
+    TODO: How is this supposed to handle UTC?
 
     Parameters
     ----------
@@ -44,8 +45,9 @@ def observation_date_to_night(observation_date):
 
     Returns
     -------
-    night : datetime.date
+    night : datetime.date | None
         night of the observation
+        or None if the date cannot be parsed
     """
     if observation_date == "":
         return None
@@ -58,7 +60,7 @@ def observation_date_to_night(observation_date):
     return observation_date.date()
 
 
-class getter:
+class HeaderGetter:
     """Get data from a header/dict, based on the given mode, and applies replacements"""
 
     def __init__(self, header: fits.Header, info, mode):
@@ -78,14 +80,14 @@ class getter:
     def __call__(self, key, alt=None):
         return self.get(key, alt)
 
-    def get(self, key, alt=None):
+    def get(self, key, default: Any = None):
         """Get data
 
         Parameters
         ----------
         key : str
             key of the data in the header
-        alt : obj, optional
+        default : obj, optional
             alternative value, if key does not exist (default: None)
 
         Returns
@@ -99,7 +101,7 @@ class getter:
         #     value = value[self.index]
         if isinstance(value, str):
             value = value.format(**self.info)
-            value = self.header.get(value, alt)
+            value = self.header.get(value, default)
         return value
 
 
@@ -148,7 +150,7 @@ class Instrument(metaclass=abc.ABCMeta):
         return self.name
 
     def get(self, key, header, mode, alt=None):
-        get = getter(header, self.info, mode)
+        get = HeaderGetter(header, self.info, mode)
         return get(key, alt=alt)
 
     def get_extension(self, header, mode):
@@ -226,7 +228,7 @@ class Instrument(metaclass=abc.ABCMeta):
         --------
         data : masked_array
             FITS data, clipped and flipped, and with mask
-        header : fits.header
+        header : fits.Header
             FITS header (Primary and Extension + Modeinfo)
 
         ONLY the header is returned if header_only is True
@@ -259,7 +261,7 @@ class Instrument(metaclass=abc.ABCMeta):
         hdu.close()
         return data, header
 
-    def add_header_info(self, header: fits.Header, mode: str, **kwargs) -> dict[str, Any]:
+    def add_header_info(self, header: fits.Header, mode: str, **kwargs) -> fits.Header | dict[str, Any]:
         """read data from header and add it as REDUCE keyword back to the header
 
         Parameters
@@ -276,7 +278,7 @@ class Instrument(metaclass=abc.ABCMeta):
         """
 
         info = self.load_info()
-        get = getter(header, info, mode)
+        get = HeaderGetter(header, info, mode)
 
         header["e_instrument"] = get("instrument", self.__class__.__name__)
         header["e_telescope"] = get("telescope", "")
@@ -331,8 +333,8 @@ class Instrument(metaclass=abc.ABCMeta):
         return header
 
     @staticmethod
-    def find_files(input_dir) -> np.ndarray[str]:
-        """Find fits files in the given folder
+    def find_files(input_dir) -> list[str]:
+        """Find FITS files in the given folder
 
         Parameters
         ----------
@@ -346,13 +348,12 @@ class Instrument(metaclass=abc.ABCMeta):
         """
         files = glob.glob(input_dir + "/*.fits")
         files += glob.glob(input_dir + "/*.fits.gz")
-        files = np.array(files)
         return files
 
     def get_expected_values(self,
                             target: str,
                             night: datetime.date,
-                            *args, **kwargs):
+                            *args, **kwargs) -> dict[str, dict]:
         expectations = {
             "bias": {
                 "instrument": self.info["id_instrument"],
@@ -396,9 +397,25 @@ class Instrument(metaclass=abc.ABCMeta):
                 "spec": self.info["id_spec"],
             },
         }
+
+        # TODO: Compressed, DRY version of the dict above (which can be removed afterwards)
+        better_expectations = {
+            key: {
+                "instrument": self.info["id_instrument"],
+                "night": night,
+                key: self.info["id_" + key],
+            } for key in ["bias", "flat", "orders", "scatter", "curvature"]
+        } | {
+            key: {
+                "instrument": self.info["id_instrument"],
+                "night": night,
+                "target": target,
+                "spec": self.info["id_spec"],
+            } for key in ["science"]
+        }
         return expectations
 
-    def populate_filters(self, files):
+    def populate_filters(self, files: list[Path]) -> list[Filter]:
         """Extract values from the fits headers and store them in self.filters
 
         Parameters
@@ -423,7 +440,11 @@ class Instrument(metaclass=abc.ABCMeta):
 
         return self.filters
 
-    def apply_filters(self, files, expected, allow_calibration_only=False):
+    def apply_filters(self,
+                      files: list[Path],
+                      expected: dict[str, dict],
+                      *,
+                      allow_calibration_only=False):
         """
         Determine the relevant files for a given set of expected values.
 
@@ -469,8 +490,8 @@ class Instrument(metaclass=abc.ABCMeta):
                 if np.count_nonzero(mask) == 0:
                     continue
                 d = {k: v[0] for k, v in zip(values.keys(), thingy)}
-                f = files[mask]
-                result[step].append((d, f))
+                f = np.array(files)[mask]
+                result[step].append((d, list(f)))
 
         # Filter for only nights that have a science observation
         # files = [{setting: value}, {step: files}]
@@ -539,12 +560,8 @@ class Instrument(metaclass=abc.ABCMeta):
                         else:
                             # We found files in a close night
                             closest_key, closest_files = step_data[j]
-                            logger.warning(
-                                "Using '%s' files from night %s for observations of night %s",
-                                step,
-                                night,
-                                closest_key["night"],
-                            )
+                            logger.warning(f"Using {step} files from night {night.isoformat()} "
+                                           f"for observations of night {closest_key['night']}")
                             f[step] = closest_files
 
             if any([len(a) > 0 for a in f.values()]):
@@ -553,16 +570,20 @@ class Instrument(metaclass=abc.ABCMeta):
             logger.warning(f"No {self.science} files found matching the expected values {expected[self.science]}")
         return files
 
-    def sort_files(
-            self, input_dir, target, night, *args, allow_calibration_only=False, **kwargs
-    ):
+    def sort_files(self,
+                   input_dir_template: str,
+                   target: str,
+                   night: datetime.date,
+                   *args,
+                   allow_calibration_only: bool = False,
+                   **kwargs) -> list[Path]:
         """
         Sort a set of fits files into different categories
         types are: bias, flat, wavecal, orderdef, spec
 
         Parameters
         ----------
-        input_dir : str
+        input_dir_template : str
             input directory containing the files to sort
         target : str
             name of the target as in the fits headers
@@ -578,14 +599,10 @@ class Instrument(metaclass=abc.ABCMeta):
         nights_out : list[datetime]
             a list of observation times, same order as files_per_night
         """
-        input_dir = input_dir.format(
-            **kwargs, target=target, night=night, instrument=self.name
-        )
-        files = self.find_files(input_dir)
+        input_dir_template = input_dir_template.format(target=target, night=night, instrument=self.name, **kwargs)
+        files = self.find_files(input_dir_template)
         ev = self.get_expected_values(target, night, *args, **kwargs)
-        files = self.apply_filters(
-            files, ev, allow_calibration_only=allow_calibration_only
-        )
+        files = self.apply_filters(files, ev, allow_calibration_only=allow_calibration_only)
         return files
 
     def get_wavecal_filename(self, header, mode, **kwargs):
@@ -608,25 +625,23 @@ class Instrument(metaclass=abc.ABCMeta):
         specifier = header.get(info.get("wavecal_specifier", ""), "")
         instrument = "wavecal"
 
-        return Path(__file__).parents[1] / "wavecal", f"wavecal_{mode}_{specifier}.npz"
+        return Path(__file__).parents[1] / "wavecal", f"{instrument}_{mode}_{specifier}.npz"
 
     def get_supported_modes(self):
         info = self.load_info()
         return info["modes"]
 
-    def get_mask_filename(self, mode, **kwargs):
-        i = self.name.lower()
-        m = mode.lower()
-        fname = f"mask_{i}_{m}.fits.gz"
-        cwd = os.path.dirname(__file__)
-        fname = os.path.join(cwd, "..", "masks", fname)
-        return fname
+    def get_mask_filename(self, mode, **kwargs) -> Path:
+        return Path(__file__).parents[1] / "masks" / f"mask_{self.name.lower()}_{mode.lower()}.fits.gz"
 
     def get_wavelength_range(self, header, mode, **kwargs):
         return self.get("wavelength_range", header, mode)
 
 
 class InstrumentWithModes(Instrument):
+    """
+    Extends the Instrument class with observation mode
+    """
     def __init__(self):
         super().__init__()
 

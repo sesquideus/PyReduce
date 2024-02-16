@@ -13,7 +13,7 @@ from astropy.io import fits
 from astropy.time import Time
 from dateutil import parser
 
-from .common import Instrument, getter, observation_date_to_night
+from .common import Instrument, HeaderGetter, observation_date_to_night
 
 logger = logging.getLogger()
 
@@ -76,9 +76,9 @@ class JWST_NIRISS(Instrument):
             files.append(fname_this)
         return files
 
-    def sort_files(self, input_dir, target, night, mode, allow_calibration_only=False):
+    def sort_files(self, input_dir_template, target, night, mode, allow_calibration_only=False):
         files = super().sort_files(
-            input_dir,
+            input_dir_template,
             target,
             night,
             mode,

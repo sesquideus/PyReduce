@@ -11,7 +11,7 @@ import re
 
 from astropy.time import Time
 
-from .common import InstrumentWithModes, getter
+from .common import InstrumentWithModes, HeaderGetter
 
 logger = logging.getLogger()
 
@@ -36,7 +36,7 @@ class MCDONALD(InstrumentWithModes):
 
         header = super().add_header_info(header, mode, **kwargs)
         info = self.load_info()
-        get = getter(header, info, mode)
+        get = HeaderGetter(header, info, mode)
 
         header["e_orient"] = get("orientation", 0)
         # As per IDL rotate if orient is 4 or larger and transpose is undefined

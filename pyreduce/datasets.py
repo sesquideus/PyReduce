@@ -28,7 +28,8 @@ class Dataset(metaclass=abc.ABCMeta):
     def data_dir(self) -> Path:
         return self._data_dir
 
-    def load_data_from_server(self, filename: str, directory: Path) -> None:
+    @staticmethod
+    def load_data_from_server(filename: str, directory: Path) -> None:
         wget.download(f"{Dataset.server_url}{filename}", out=str(directory / filename))
 
     def __init__(self, *, local_dir_template: str | None = None):
@@ -101,63 +102,16 @@ class DatasetXSHOOTER(Dataset):  # pragma: no cover
     target: str = "Ux-Ori"
 
 
-def JWST_MIRI(local_dir=None):  # pragma: no cover
-    """Load an example dataset
-    instrument: JWST_MIRI
-    target: ?
-
-    Data simulated with MIRIsim
-
-    Parameters
-    ----------
-    local_dir : str, optional
-        directory to save data at (default: "./")
-
-    Returns
-    -------
-    dataset_dir : str
-        directory where the data was saved
-    """
-
-    return get_dataset("MIRI", local_dir)
+class DatasetJWST_MIRI(Dataset):  # pragma: no cover
+    instrument_name: str = "JWST_MIRI"
+    target: str = "?"
 
 
-def JWST_NIRISS(local_dir=None):  # pragma: no cover
-    """Load an example dataset
-    instrument: JWST_NIRISS
-    target: ?
-
-    Data simulated with awesimsoss
-
-    Parameters
-    ----------
-    local_dir : str, optional
-        directory to save data at (default: "./")
-
-    Returns
-    -------
-    dataset_dir : str
-        directory where the data was saved
-    """
-
-    return get_dataset("NIRISS", local_dir)
+class DatasetJWST_NIRISS(Dataset):  # pragma: no cover
+    instrument: str = "JWST_NIRISS"
+    target: str = "?"
 
 
-def KECK_NIRSPEC(local_dir=None):  # pragma: no cover
-    """Load an example dataset
-    instrument: KECK_NIRSPEC
-    target: GJ1214
-
-    Parameters
-    ----------
-    local_dir : str, optional
-        directory to save data at (default: "./")
-
-    Returns
-    -------
-    dataset_dir : str
-        directory where the data was saved
-    """
-
-    return get_dataset("NIRSPEC", local_dir)
-
+class DatasetKECK_NIRSPEC(Dataset):  # pragma: no cover
+    instrument: str = "KECK_NIRSPEC"
+    target: str = "GJ1214"

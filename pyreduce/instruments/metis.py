@@ -12,7 +12,7 @@ import numpy as np
 from astropy.io import fits
 from dateutil import parser
 
-from .common import getter, InstrumentWithModes, Instrument, observation_date_to_night
+from .common import HeaderGetter, InstrumentWithModes, Instrument, observation_date_to_night
 
 logger = logging.getLogger()
 

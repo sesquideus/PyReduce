@@ -15,7 +15,7 @@ from astropy.io import fits
 from dateutil import parser
 from tqdm import tqdm
 
-from .common import Instrument, getter, observation_date_to_night
+from .common import Instrument, HeaderGetter, observation_date_to_night
 
 logger = logging.getLogger()
 
@@ -59,14 +59,14 @@ class NIRSPEC(Instrument):
         header["EXPTIME"] = header.get("ITIME", 0) * header.get("COADDS", 0)
         return header
 
-    def sort_files(self, input_dir, target, night, mode, calibration_dir, **kwargs):
+    def sort_files(self, input_dir_template, target, night, mode, calibration_dir, **kwargs):
         """
         Sort a set of fits files into different categories
         types are: bias, flat, wavecal, orderdef, spec
 
         Parameters
         ----------
-        input_dir : str
+        input_dir_template : str
             input directory containing the files to sort
         target : str
             name of the target as in the fits headers
@@ -99,11 +99,11 @@ class NIRSPEC(Instrument):
             individual_nights = "all"
 
         # find all fits files in the input dir(s)
-        input_dir = input_dir.format(
+        input_dir_template = input_dir_template.format(
             instrument=instrument.upper(), target=target, mode=mode, night=night
         )
-        files = glob.glob(input_dir + "/*.fits")
-        files += glob.glob(input_dir + "/*.fits.gz")
+        files = glob.glob(input_dir_template + "/*.fits")
+        files += glob.glob(input_dir_template + "/*.fits.gz")
         files = np.array(files)
 
         # Initialize arrays
@@ -149,7 +149,7 @@ class NIRSPEC(Instrument):
                 )
                 caliblist = np.array(
                     [
-                        os.path.join(input_dir, calibration_dir, c) + ".gz"
+                        os.path.join(input_dir_template, calibration_dir, c) + ".gz"
                         for c in caliblist
                     ]
                 )

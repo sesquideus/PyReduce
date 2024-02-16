@@ -12,7 +12,7 @@ import numpy as np
 from itertools import product
 from pathlib import Path
 
-from .common import Instrument, getter, observation_date_to_night
+from .common import Instrument, HeaderGetter, observation_date_to_night
 from .filters import Filter
 
 logger = logging.getLogger()

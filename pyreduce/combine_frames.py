@@ -12,7 +12,9 @@ import os
 import astropy.io.fits as fits
 import matplotlib.pyplot as plt
 import numpy as np
+
 from dateutil import parser
+from pathlib import Path
 from scipy.ndimage.filters import median_filter
 from tqdm import tqdm
 
@@ -24,12 +26,12 @@ from .instruments import Instrument
 logger = logging.getLogger()
 
 
-def running_median(arr, size):
+def running_median(arr: np.ndarray, size: int) -> np.ndarray:
     """Calculate the running median of a 2D sequence
 
     Parameters
     ----------
-    seq : 2d array [n, l]
+    arr : 2d array [n, l]
         n datasets of length l
     size : int
         number of elements to consider for each median
@@ -61,10 +63,10 @@ def running_sum(arr, size):
 
     ret = np.cumsum(arr, axis=1)
     ret[:, size:] -= ret[:, :-size]
-    return ret[:, size - 1 :]
+    return ret[:, size - 1:]
 
 
-def calculate_probability(buffer, window, method="sum"):
+def calculate_probability(buffer: np.ndarray, window: int, method: str = "sum"):
     """
     Construct a probability function based on buffer data.
 
@@ -87,16 +89,19 @@ def calculate_probability(buffer, window, method="sum"):
     buffer = np.require(buffer, dtype=float)
 
     # Take the median/sum for each file
-    if method == "median":
-        # Running median is slow
-        weights = running_median(buffer, 2 * window + 1)
-        sum_of_weights = np.mean(weights, axis=0)
-    if method == "sum":
-        # Running sum is fast
-        weights = running_sum(buffer, 2 * window + 1)
-        sum_of_weights = np.sum(weights, axis=0)
+    match method:
+        case "median":
+            # Running median is slow
+            weights = running_median(buffer, 2 * window + 1)
+            sum_of_weights = np.mean(weights, axis=0)
+        case "sum":
+            # Running sum is fast
+            weights = running_sum(buffer, 2 * window + 1)
+            sum_of_weights = np.sum(weights, axis=0)
+        case _:
+            raise ValueError(f"Expected 'sum' or 'median', got {method}")
 
-    # norm probability
+    # norm the probability
     np.divide(weights, sum_of_weights, where=sum_of_weights > 0, out=weights)
     return weights
 
@@ -128,8 +133,8 @@ def fix_bad_pixels(probability, buffer, readnoise, gain, threshold):
     np.divide(buffer, probability, where=probability > 0, out=ratio)
     # ratio = np.where(probability > 0, buffer / probability, 0.)
     amplitude = (
-        np.sum(ratio, axis=0) - np.min(ratio, axis=0) - np.max(ratio, axis=0)
-    ) / (buffer.shape[0] - 2)
+                        np.sum(ratio, axis=0) - np.min(ratio, axis=0) - np.max(ratio, axis=0)
+                ) / (buffer.shape[0] - 2)
 
     fitted_signal = np.where(probability > 0, amplitude[None, :] * probability, 0)
     predicted_noise = np.zeros_like(fitted_signal)
@@ -147,14 +152,14 @@ def fix_bad_pixels(probability, buffer, readnoise, gain, threshold):
 
 
 def combine_frames(
-    files: list[str],
-    instrument: Instrument,
-    mode: str,
-    extension=None,
-    threshold=3.5,
-    window=50,
-    dtype=np.float32,
-    **kwargs,
+        files: list[str],
+        instrument: Instrument,
+        mode: str,
+        extension: int = None,
+        threshold: float = 3.5,
+        window: int = 50,
+        dtype: np.dtype = np.float32,
+        **kwargs,
 ):
     """
     Subroutine to correct cosmic rays blemishes, while adding otherwise
@@ -180,7 +185,7 @@ def combine_frames(
         mean of them computed across the stack of files. In other words:
         >>> filwt[iFil] = median(mBuff[iCol-win:iCol+win,iFil])
         >>> norm_filwt = mean(filwt)
-        >>> prob[iCol,iFil] = (norm_filtwt>0)?filwt[iCol]/norm_filwt:filwt[iCol]
+        >>> prob[iCol,iFil] = (norm_filtwt>0) ? filwt[iCol]/norm_filwt : filwt[iCol]
 
         This is done for all iCol in the range of [win:nCol-win-1]. It is then linearly extrapolated to
         the win zones of both ends. E.g. for iCol in [0:win-1] range:
@@ -242,8 +247,8 @@ def combine_frames(
         combined image data, header
     """
 
-    assert isinstance(files, np.ndarray), \
-           f"An array of files is expected as an input, got {type(files)}"
+    assert isinstance(files, list), \
+        f"An array of files is expected as an input, got {type(files)}"
     assert isinstance(instrument, Instrument), "All instruments should be Instrument instances at this stage"
 
     logger.debug(f"Combining frames for instrument {instrument.name} in mode {mode} for files {files}")
@@ -390,12 +395,12 @@ def combine_frames(
 
                 # extrapolate to edges
                 probability[:, :window] = (
-                    2 * probability[:, window][:, None]
-                    - probability[:, 2 * window : window : -1]
+                        2 * probability[:, window][:, None]
+                        - probability[:, 2 * window: window: -1]
                 )
                 probability[:, -window:] = (
-                    2 * probability[:, -window - 1][:, None]
-                    - probability[:, -window - 1 : -2 * window - 1 : -1]
+                        2 * probability[:, -window - 1][:, None]
+                        - probability[:, -window - 1: -2 * window - 1: -1]
                 )
 
                 # fix bad pixels
@@ -447,18 +452,18 @@ def combine_frames(
 
 
 def combine_calibrate(
-    files: list[str],
-    instrument: Instrument,
-    mode: str,
-    mask=None,
-    bias=None,
-    bhead=None,
-    norm=None,
-    bias_scaling="exposure_time",
-    norm_scaling="divide",
-    plot=False,
-    plot_title=None,
-    **kwargs,
+        files: list[str],
+        instrument: Instrument,
+        mode: str,
+        mask=None,
+        bias=None,
+        bhead=None,
+        norm=None,
+        bias_scaling: str = "exposure_time",
+        norm_scaling: str = "divide",
+        plot=False,
+        plot_title=None,
+        **kwargs,
 ):
     """
     Combine the input files and then calibrate the image with the bias
@@ -513,19 +518,21 @@ def combine_calibrate(
                     "No exposure time set in bias, using number of files instead"
                 )
                 bias_scaling = "number_of_files"
-            if bias_scaling == "exposure_time":
-                orig -= bias * thead["exptime"] / bhead["exptime"]
-            elif bias_scaling == "number_of_files":
-                orig -= bias * len(files)
-            elif bias_scaling == "mean":
-                orig -= bias * np.ma.mean(orig) / np.ma.mean(bias)
-            elif bias_scaling == "median":
-                orig -= bias * np.ma.median(orig) / np.ma.median(bias)
-            else:
-                raise ValueError(
-                    "Unexpected value for 'bias_scaling', expected one of ['exposure_time', 'number_of_files', 'mean', 'median', 'none'], but got %s"
-                    % bias_scaling
-                )
+            match bias_scaling:
+                case "exposure_time":
+                    orig -= bias * thead["exptime"] / bhead["exptime"]
+                case "number_of_files":
+                    orig -= bias * len(files)
+                case "mean":
+                    orig -= bias * np.ma.mean(orig) / np.ma.mean(bias)
+                case "median":
+                    orig -= bias * np.ma.median(orig) / np.ma.median(bias)
+                case "none":
+                    pass
+                case _:
+                    raise ValueError("Unexpected value for 'bias_scaling', expected one of "
+                                     "['exposure_time', 'number_of_files', 'mean', 'median', 'none'], "
+                                     f"but got {bias_scaling}")
         else:
             degree = bias.shape[0]
             if bias_scaling == "exposure_time":
@@ -569,9 +576,15 @@ def combine_calibrate(
     return orig, thead
 
 
-def combine_polynomial(
-    files, instrument, mode, mask, degree=1, plot=False, plot_title=None
-):
+def combine_polynomial(files: list[Path],
+                       instrument: Instrument,
+                       mode: str,
+                       *,
+                       mask: np.ndarray,
+                       degree: int = 1,
+                       plot: bool = False,
+                       plot_title: str = None,
+                       plot_cmap: str = 'viridis'):
     """
     Combine the input files by fitting a polynomial of the pixel value versus
     the exposure time of each pixel
@@ -629,7 +642,7 @@ def combine_polynomial(
             plt.xlabel("x [pixel]")
             plt.ylabel("y [pixel]")
             bot, top = np.percentile(bias[i], (10, 90))
-            plt.imshow(bias[i], vmin=bot, vmax=top, origin="lower")
+            plt.imshow(bias[i], vmin=bot, vmax=top, origin="lower", cmap=plot_cmap)
 
         plt.suptitle(title)
         if plot != "png":
@@ -640,16 +653,14 @@ def combine_polynomial(
     return bias, bhead
 
 
-def combine_bias(
-    files,
-    instrument,
-    mode,
-    extension=None,
-    plot=False,
-    plot_title=None,
-    science_observation_time=None,
-    **kwargs,
-):
+def combine_bias(files: list[str],
+                 instrument,
+                 mode,
+                 extension=None,
+                 plot: bool = False,
+                 plot_title: str = None,
+                 science_observation_time = None,
+                 **kwargs):
     """
     Combine bias frames, determine read noise, reject bad pixels.
     Read noise calculation only valid if both lists yield similar noise.
@@ -684,7 +695,7 @@ def combine_bias(
         list1 = list2 = files
         n = 2
     else:
-        list1, list2 = files[: n // 2], files[n // 2 :]
+        list1, list2 = files[: n // 2], files[n // 2:]
 
     # Lists of images.
     n1 = len(list1)

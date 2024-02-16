@@ -6,10 +6,9 @@ Mostly reading data from the header
 """
 import logging
 import re
-from itertools import product
-from os.path import dirname, join
-
 import numpy as np
+
+from pathlib import Path
 
 from .common import Instrument
 from .filters import Filter, InstrumentFilter, NightFilter, ObjectFilter
@@ -54,14 +53,10 @@ class FiberFilter(Filter):
             value = ""
         else:
             value = value.split(",")
-            if value[0] in self.lamp_values and value[1] in self.lamp_values:
-                value = "AB"
-            elif value[1] in self.lamp_values:
-                value = "B"
-            elif value[0] in self.lamp_values:
-                value = "A"
-            else:
-                value = ""
+            if value[0] in self.lamp_values:
+                value += "A"
+            if value[1] in self.lamp_values:
+                value += "B"
 
         self.data.append(value)
         return value
@@ -289,16 +284,10 @@ class HARPS(Instrument):
 
         return header
 
-    def get_wavecal_filename(self, header, mode, polarimetry, **kwargs):
+    def get_wavecal_filename(self, header, mode, polarimetry, **kwargs) -> Path:
         """Get the filename of the wavelength calibration config file"""
-        cwd = dirname(__file__)
-        if polarimetry:
-            pol = "_pol"
-        else:
-            pol = ""
-        fname = f"harps_{mode.lower()}{pol}_2D.npz"
-        fname = join(cwd, "..", "wavecal", fname)
-        return fname
+        pol = "_pol" if polarimetry is not None else ""
+        return Path(__file__).parents[1] / "wavecal" / f"harps_{mode.lower()}{pol}_2D.npz"
 
     def get_wavelength_range(self, header, mode, **kwargs):
         wave_range = super().get_wavelength_range(header, mode, **kwargs)
