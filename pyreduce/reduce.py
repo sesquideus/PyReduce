@@ -151,7 +151,6 @@ def main(instrument_name: str,
     output_dir_template: str = os.path.join(base_dir_template, output_dir_template)
     logger.info(f"output_dir_template is \"{output_dir_template}")
 
-
     if modes is None:
         modes = info["modes"]
     if np.isscalar(modes):
@@ -159,7 +158,7 @@ def main(instrument_name: str,
 
     for t, n, m in itertools.product(targets, nights, modes):
         log_file = os.path.join(
-            base_dir_template.format(instrument=str(instrument), mode=modes, target=t),
+            base_dir_template.format(instrument=instrument.name, mode=modes, target=t),
             "logs/%s.log" % t,
         )
         util.start_logging(log_file)
@@ -174,7 +173,7 @@ def main(instrument_name: str,
         )
         if len(files) == 0:
             logger.warning(f"No files found for instrument {instrument}, target: {t}, night: {n}, mode: {m} "
-                           f"in folder: {input_dir_template}")
+                           f"in folder {input_dir_template}")
         else:
             for k, f in files:
                 logger.info("Settings:")

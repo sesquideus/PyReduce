@@ -1,51 +1,29 @@
 """
 Simple usage example for PyReduce
 Loads a simulated METIS dataset, and runs the full extraction
+By Nadeen Sabha
 """
 
-import os.path
-import pyreduce
-from pyreduce import datasets
+import datetime
+import typing
 
-# define parameters
-instrument = "METIS"
-target = ""
-night = ""
-mode = "LSS_M"  # LSS_M (settings_metis.json is now optimized for LSS_M mode)
-steps = (
-     # "bias",
-     "flat",
-     "orders",
-     "curvature",
-     # "scatter",
-     #"norm_flat",
-     "wavecal_master",
-     # # "wavecal_init", 
-     "wavecal",
-     # "rectify",
-     # "science",
-     # "continuum",
-     # "finalize",
-)
+from pathlib import Path
+
+from pyreduce.datasets import DatasetMETIS
+from workflow import Workflow
+
 
 # some basic settings
 # Expected Folder Structure: base_dir/datasets/METIS/*.fits.gz or *.fits
-# Feel free to change this to your own preference, values in curly brackets will be replaced with the actual values {}
 
-# Define the path for the base, input and output directories
-# The data can be fetched from https://www.dropbox.com/sh/h1dz80vsw4lwoel/AAAqJD_FGDGC-t12wgnPXVR8a?dl=0 and stored in /raw/
+# The data can be fetched from https://www.dropbox.com/sh/h1dz80vsw4lwoel/AAAqJD_FGDGC-t12wgnPXVR8a?dl=0
+# and stored in /raw/
 
-#laptop
-base_dir = "/Users/Nadeen/Dropbox/WORKING/iMETIS/Working/WORKING_PyReduce/DATA/datasets/METIS/" # an example path which you should change to your prefereed one 
-#PC
+# Nadeen's laptop
+# base_dir = "/Users/Nadeen/Dropbox/WORKING/iMETIS/Working/WORKING_PyReduce/DATA/datasets/METIS/"
+# an example path which you should change to your preferred one
+# Nadeen's PC
 # base_dir ="/media/data/Dropbox/Dropbox/WORKING/iMETIS/Working/WORKING_PyReduce/DATA/datasets/METIS/"
-
-
-input_dir = "raw/"
-output_dir = "reduced/"
-
-config = pyreduce.configuration.get_configuration_for_instrument(instrument, plot=1)
-
 
 # Configuring parameters of individual steps here overwrites those defined in the settings_METIS.json file.
 # Once you are satisfied with the chosen parameter, you can update it in settings_METIS.json.
@@ -59,20 +37,40 @@ config = pyreduce.configuration.get_configuration_for_instrument(instrument, plo
 # config["curvature"]["peak_width"] = 1# 1 worked for lband
 # config["curvature"]["window_width"] = 1 #  2 worked for lband
 # config["curvature"]["degree"] = 2 #
+# config["wavecal"]["extraction_width"] = 0.7825 # 0.7325
 
 
-# # config["wavecal"]["extraction_width"] = 0.7825 # 0.7325
+class WorkflowExampleMETIS(Workflow):
+    instrument: str = "METIS"
+    dataset_class: typing.ClassVar = DatasetMETIS
+    target: str = r"HD[- ]?132205"
+    night: datetime.date = datetime.date(2010, 4, 1)
+    mode: str = "LSS_M" # LSS_M (settings_metis.json is now optimized for LSS_M mode)
+    steps: list[str] = [
+        # "bias",
+        "flat",
+        "orders",
+        "curvature",
+        # "scatter",
+        # "norm_flat",
+        "wavecal_master",
+        # # "wavecal_init",
+        "wavecal",
+        # "rectify",
+        # "science",
+        # "continuum",
+        # "finalize",
+    ]
+    local_dir: Path = Path("~/astar/pyreduce/data/").expanduser()
+    base_dir_template: str = None
+    input_dir_template: str = "raw/"
+    output_dir_template: str = "reduced/"
+    # I had to change it inside reduce.py because it does the fix_column_range
+    # for all detected orders > outside of image
+    order_range: tuple[int, int] = (16, 17)
+
+# some basic settings
+# feel free to change this to your own preference, values in curly brackets will be replaced with the actual values {}
 
 
-pyreduce.reduce.main(
-    instrument,
-    target,
-    night,
-    mode,
-    steps,
-    base_dir_template=base_dir,
-    input_dir_template=input_dir,
-    output_dir_template=output_dir,
-    configuration=config,
-    # order_range=(16, 17),  #(16, 17) # I had to change it inside reduce.py becuase it does the fix_column_range for all detected orders > outside of image
-)
+WorkflowExampleMETIS().process()

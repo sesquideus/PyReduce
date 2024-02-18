@@ -11,7 +11,7 @@ from pathlib import Path
 
 import wget
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Dataset(metaclass=abc.ABCMeta):
@@ -58,7 +58,7 @@ class Dataset(metaclass=abc.ABCMeta):
 
         # Load data if necessary
         fname = f"{self.instrument_name}.tar.gz"
-        self._data_dir = Path(local_dir_template) / "datasets" / self.instrument_name
+        self._data_dir = Path(self._local_dir_template) / "datasets" / self.instrument_name
         filename = self.data_dir / fname
 
         self._data_dir.mkdir(parents=True, exist_ok=True)
@@ -108,10 +108,15 @@ class DatasetJWST_MIRI(Dataset):  # pragma: no cover
 
 
 class DatasetJWST_NIRISS(Dataset):  # pragma: no cover
-    instrument: str = "JWST_NIRISS"
+    instrument_name: str = "JWST_NIRISS"
     target: str = "?"
 
 
 class DatasetKECK_NIRSPEC(Dataset):  # pragma: no cover
-    instrument: str = "KECK_NIRSPEC"
+    instrument_name: str = "KECK_NIRSPEC"
     target: str = "GJ1214"
+
+
+class DatasetMETIS(Dataset):
+    instrument_name: str = "METIS"
+    target: str = None
