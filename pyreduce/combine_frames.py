@@ -106,7 +106,11 @@ def calculate_probability(buffer: np.ndarray, window: int, method: str = "sum"):
     return weights
 
 
-def fix_bad_pixels(probability, buffer, readnoise, gain, threshold):
+def fix_bad_pixels(probability: np.ndarray[float],
+                   buffer: np.ndarray[float],
+                   readnoise: float,
+                   gain: float,
+                   threshold: float):
     """
     find and fix bad pixels
 
@@ -151,16 +155,14 @@ def fix_bad_pixels(probability, buffer, readnoise, gain, threshold):
     return corrected_signal, nbad
 
 
-def combine_frames(
-        files: list[str],
-        instrument: Instrument,
-        mode: str,
-        extension: int = None,
-        threshold: float = 3.5,
-        window: int = 50,
-        dtype: np.dtype = np.float32,
-        **kwargs,
-):
+def combine_frames(files: list[str],
+                   instrument: Instrument,
+                   mode: str,
+                   extension: int = None,
+                   threshold: float = 3.5,
+                   window: int = 50,
+                   dtype: np.dtype = np.float32,
+                   **kwargs):
     """
     Subroutine to correct cosmic rays blemishes, while adding otherwise
     similar images.
@@ -249,7 +251,7 @@ def combine_frames(
 
     assert isinstance(files, list), \
         f"An array of files is expected as an input, got {type(files)}"
-    assert isinstance(instrument, Instrument), "All instruments should be Instrument instances at this stage"
+    assert isinstance(instrument, Instrument), "All instruments must be Instrument instances at this stage"
 
     logger.debug(f"Combining frames for instrument {instrument.name} in mode {mode} for files {files}")
 
@@ -451,20 +453,19 @@ def combine_frames(
     return result, head
 
 
-def combine_calibrate(
-        files: list[str],
-        instrument: Instrument,
-        mode: str,
-        mask=None,
-        bias=None,
-        bhead=None,
-        norm=None,
-        bias_scaling: str = "exposure_time",
-        norm_scaling: str = "divide",
-        plot=False,
-        plot_title=None,
-        **kwargs,
-):
+def combine_calibrate(files: list[str],
+                      instrument: Instrument,
+                      mode: str,
+                      mask: np.ndarray | None = None,
+                      bias: str = None,
+                      bhead=None,
+                      norm=None,
+                      *,
+                      bias_scaling: str = "exposure_time",
+                      norm_scaling: str = "divide",
+                      plot: bool = False,
+                      plot_title: str = None,
+                      **kwargs):
     """
     Combine the input files and then calibrate the image with the bias
     and normalized flat field if provided
@@ -482,11 +483,11 @@ def combine_calibrate(
     bias : tuple(bias, bhead), optional
         bias correction to apply to the combiend image, if bias has 3 dimensions
         it is used as polynomial coefficients scaling with the exposure time, by default None
-    norm_flat : tuple(norm, blaze), optional
-        normalized flat to divide the combined image with after
-        the bias subtraction, by default None
     bias_scaling : str, optional
         defines how the bias is subtracted, by default "exposure_time"
+    norm_scaling : tuple(norm, blaze), optional
+        normalized flat to divide the combined image with after
+        the bias subtraction, by default None
     plot : bool, optional
         whether to plot the results, by default False
     plot_title : str, optional
@@ -496,7 +497,7 @@ def combine_calibrate(
     -------
     orig : array
         combined image with calibrations applied
-    thead : Header
+    thead : fits.Header
         header of the combined image
 
     Raises
@@ -659,7 +660,7 @@ def combine_bias(files: list[str],
                  extension=None,
                  plot: bool = False,
                  plot_title: str = None,
-                 science_observation_time = None,
+                 science_observation_time=None,
                  **kwargs):
     """
     Combine bias frames, determine read noise, reject bad pixels.

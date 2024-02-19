@@ -10,9 +10,10 @@ no new parameters have been added by accident.
 
 import json
 import logging
-from os.path import dirname, join
-
 import jsonschema
+
+from os.path import dirname, join
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ def get_configuration_for_instrument(instrument, **kwargs):
     return config
 
 
-def load_config(configuration, instrument, j: int = 0):
+def load_config(configuration, instrument: str, j: int = 0):
     logger.debug(f"Loading configuration for instrument {instrument})")
 
     if configuration is None:
@@ -69,8 +70,7 @@ def load_config(configuration, instrument, j: int = 0):
             with open(config) as f:
                 config = json.load(f)
         except FileNotFoundError:
-            fname = dirname(__file__)
-            fname = join(fname, "settings", config)
+            fname = Path(__file__).parent / "instruments" / instrument.lower() / f"settings_{instrument}.json"
             with open(fname) as f:
                 config = json.load(f)
 
@@ -142,9 +142,7 @@ def read_config(fname="settings_pyreduce.json"):
     config : dict
         The read configuration file
     """
-    this_dir = dirname(__file__)
-    fname = join(this_dir, "settings", fname)
-
+    fname = Path(__file__).parent / "instruments" / fname
     with open(fname) as file:
         settings = json.load(file)
         return settings
@@ -173,9 +171,7 @@ def validate_config(config) -> None:
     if not hasJsonSchema:  # pragma: no cover
         # Can't check with old version
         return
-    fname = "settings_schema.json"
-    this_dir = dirname(__file__)
-    fname = join(this_dir, "settings", fname)
+    fname = Path(__file__).parent / "instruments" / "settings_schema.json"
 
     with open(fname) as f:
         schema = json.load(f)

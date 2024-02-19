@@ -77,10 +77,10 @@ class HeaderGetter:
             if isinstance(v, list):
                 self.info[k] = v[self.index]
 
-    def __call__(self, key, alt=None):
-        return self.get(key, alt)
+    def __call__(self, key: str, default: Any = None):
+        return self.get(key, default)
 
-    def get(self, key, default: Any = None):
+    def get(self, key: str, default: Any = None):
         """Get data
 
         Parameters
@@ -115,7 +115,7 @@ class Instrument(metaclass=abc.ABCMeta):
         # Name of the instrument (lowercase)
         self.name: str = self.__class__.__name__.lower()
         # Information about the instrument
-        self.info: dict[str] = self.load_info()
+        self.info: dict[str, Any] = self.load_info()
 
         self.filters = {
             "instrument": InstrumentFilter(self.info["instrument"], regex=True),
@@ -164,7 +164,7 @@ class Instrument(metaclass=abc.ABCMeta):
 
         return extension
 
-    def load_info(self) -> dict[str]:
+    def load_info(self) -> dict[str, Any]:
         """
         Load static instrument information
         Either as fits header keywords or static values
@@ -456,6 +456,7 @@ class Instrument(metaclass=abc.ABCMeta):
         expected : dict
             dictionary with expected header values for each reduction step
         allow_calibration_only : bool
+            TODO: what does this do?
 
         Returns
         -------

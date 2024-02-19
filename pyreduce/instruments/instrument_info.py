@@ -7,11 +7,13 @@ import datetime
 import importlib
 
 from pathlib import Path
+from astropy.io import fits
+from typing import Any
 
 from .common import Instrument
 
 
-def load_instrument(instrument_name: str) -> Instrument:
+def load_instrument(instrument_name: str | None = None) -> Instrument:
     """
     Load a Python instrument module
 
@@ -26,23 +28,17 @@ def load_instrument(instrument_name: str) -> Instrument:
         Instance of the {instrument} class
     """
 
-    # TODO: Loading arbitrary modules is probably bad style
-    # from instruments import uves, harps
-    # instruments = {"uves": uves.UVES, "harps": harps.HARPS}
-    # instrument = instruments[instrument.lower()]
-    # instrument = instrument()
+    # TODO: Loading arbitrary modules is most definitely bad style
     if instrument_name is None:
         instrument_name = "common"
 
-    fname = f".instruments.{instrument_name.lower()}.instrument"
+    fname = f".instruments.{instrument_name.lower()}.{instrument_name.lower()}"
     lib = importlib.import_module(fname, package="pyreduce")
-    instrument = getattr(lib, instrument_name, instrument_name.upper())
-    instrument = instrument()
-
-    return instrument
+    instrument_class = getattr(lib, instrument_name, instrument_name.upper())
+    return instrument_class()
 
 
-def get_instrument_info(instrument_name: str):
+def get_instrument_info(instrument_name: str) -> dict[str, Any]:
     """Load instrument specific information
 
     Parameters
@@ -60,12 +56,12 @@ def get_instrument_info(instrument_name: str):
     return instrument.info
 
 
-def sort_files(input_dir: Path, target: str, night: datetime.date, instrument: str, mode: str, **kwargs):
+def sort_files(input_dir_template: str, target: str, night: datetime.date, instrument: str, mode: str, **kwargs):
     """Sort a list of files into different categories and discard files that are not used
 
     Parameters
     ----------
-    input_dir : str
+    input_dir_template : str
         directory containing all files (with tags for target, night, and instrument)
     target : str
         observation target name, as found in the files
@@ -91,7 +87,7 @@ def sort_files(input_dir: Path, target: str, night: datetime.date, instrument: s
     """
 
     instrument = load_instrument(instrument)
-    return instrument.sort_files(input_dir, target, night, mode, **kwargs)
+    return instrument.sort_files(input_dir_template, target, night, mode, **kwargs)
 
 
 def get_supported_modes(instrument):
@@ -99,7 +95,7 @@ def get_supported_modes(instrument):
     return instrument.get_supported_modes()
 
 
-def modeinfo(header, instrument, mode, **kwargs):
+def modeinfo(header: fits.Header, instrument: Instrument, mode: str, **kwargs) -> fits.Header:
     """Add instrument specific information to a header/dict
 
     Parameters
