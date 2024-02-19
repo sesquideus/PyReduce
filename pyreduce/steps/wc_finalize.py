@@ -5,7 +5,7 @@ import os
 from pyreduce.wavelength_calibration import WavelengthCalibration as WavelengthCalibrationModule
 from .step import Step
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class WavelengthCalibrationFinalize(Step):

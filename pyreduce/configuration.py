@@ -14,7 +14,7 @@ from os.path import dirname, join
 
 import jsonschema
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 if int(jsonschema.__version__[0]) < 3:  # pragma: no cover
     logger.warning(

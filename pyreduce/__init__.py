@@ -26,7 +26,7 @@ class TqdmLoggingHandler(logging.Handler):
             self.handleError(record)
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logging.captureWarnings(True)
 

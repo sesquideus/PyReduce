@@ -3,15 +3,11 @@ Handles instrument specific info for the METIS LSS spectrograph
 
 Mostly reading data from the header
 """
-import os.path
 import logging
-import numpy as np
 
-from astropy.io import fits
-from dateutil import parser
 from pathlib import Path
 
-from .common import HeaderGetter, InstrumentWithModes, Instrument, observation_date_to_night
+from pyreduce.instruments.common import InstrumentWithModes
 
 logger = logging.getLogger(__name__)
 

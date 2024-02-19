@@ -12,9 +12,9 @@ import numpy as np
 from astropy.io import fits
 from dateutil import parser
 
-from .common import HeaderGetter, InstrumentWithModes, Instrument, observation_date_to_night
+from pyreduce.instruments.common import HeaderGetter, InstrumentWithModes, Instrument, observation_date_to_night
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class MICADO(Instrument):

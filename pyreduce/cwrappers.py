@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.ndimage import median_filter
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 try:
     from .clib._slitfunc_2d import lib as slitfunc_2dlib

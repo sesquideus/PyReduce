@@ -25,7 +25,7 @@ from tqdm import tqdm
 from .cwrappers import slitfunc, slitfunc_curved
 from .util import make_index, resample
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class ProgressPlot:  # pragma: no cover

@@ -5,7 +5,7 @@ import numpy as np
 from .calibration import CalibrationStep
 from pyreduce.estimate_background_scatter import estimate_background_scatter
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class BackgroundScatter(CalibrationStep):

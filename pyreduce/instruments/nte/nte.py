@@ -9,9 +9,9 @@ import os.path
 
 from pathlib import Path
 
-from .common import Instrument, HeaderGetter, observation_date_to_night
+from pyreduce.instruments.common import Instrument, HeaderGetter, observation_date_to_night
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class NTE(Instrument):

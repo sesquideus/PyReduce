@@ -6,7 +6,7 @@ from os.path import join
 from .step import Step
 from pyreduce.extract import extract
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class NormalizeFlatField(Step):

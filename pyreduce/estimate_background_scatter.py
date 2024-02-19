@@ -10,7 +10,7 @@ import numpy as np
 from .extract import fix_extraction_width, fix_parameters
 from .util import make_index, polyfit2d, polyfit2d_2
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def estimate_background_scatter(

@@ -9,7 +9,7 @@ from pathlib import Path
 from pyreduce.combine_frames import combine_bias, combine_polynomial
 from .step import Step
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Bias(Step):

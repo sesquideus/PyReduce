@@ -13,9 +13,9 @@ from astropy.io import fits
 from astropy.time import Time
 from dateutil import parser
 
-from .common import Instrument, HeaderGetter, observation_date_to_night
+from pyreduce.instruments.common import Instrument, HeaderGetter, observation_date_to_night
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class JWST_NIRISS(Instrument):

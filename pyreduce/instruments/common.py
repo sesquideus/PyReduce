@@ -179,7 +179,7 @@ class Instrument(metaclass=abc.ABCMeta):
         # if a value changes depending on the mode, use a list with the same order as "modes"
         # you can also use values from this dictionary as placeholders using {name}, just like str.format
 
-        fname = Path(__file__).parent / f"{self.name}.json"
+        fname = Path(__file__).parent / self.name / f"{self.name}.json"
 
         with open(fname) as f:
             try:

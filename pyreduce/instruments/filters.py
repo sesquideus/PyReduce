@@ -10,7 +10,7 @@ from astropy.time import Time
 from dateutil import parser
 from typing import Any
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Filter:

@@ -45,7 +45,7 @@ class WorkflowExampleMETIS(Workflow):
     dataset_class: typing.ClassVar = DatasetMETIS
     target: str = r"HD[- ]?132205"
     night: datetime.date = datetime.date(2010, 4, 1)
-    mode: str = "LSS_M" # LSS_M (settings_metis.json is now optimized for LSS_M mode)
+    mode: str = "LSS_M"  # LSS_M (settings_metis.json is now optimized for LSS_M mode)
     steps: list[str] = [
         # "bias",
         "flat",

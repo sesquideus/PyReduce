@@ -6,7 +6,7 @@ from os.path import join
 from pyreduce.wavelength_calibration import WavelengthCalibrationComb
 from .step import Step
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class LaserFrequencyCombFinalize(Step):

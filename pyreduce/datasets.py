@@ -76,6 +76,9 @@ class Dataset(metaclass=abc.ABCMeta):
                 logger.info(f"Extracting data from tarball {file.name}")
                 file.extractall(path=raw_dir, members=names)
 
+        #def download_and_extract(root_url: str = r"http://sme.astro.uu.se/pyreduce/"):
+
+
 
 class DatasetUVES(Dataset):  # pragma: no cover
     instrument_name: str = "UVES"
@@ -93,7 +96,7 @@ class DatasetLICK_APF(Dataset):  # pragma: no cover
 
 
 class DatasetMCDONALD(Dataset):  # pragma: no cover
-    instrument: str = "JWST_MIRI"
+    instrument_name: str = "JWST_MIRI"
     target: str = "?"
 
 

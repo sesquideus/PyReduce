@@ -7,7 +7,7 @@ from pyreduce import echelle, util
 from .calibration import CalibrationStep
 from .extraction import ExtractionStep
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class ScienceExtraction(CalibrationStep, ExtractionStep):

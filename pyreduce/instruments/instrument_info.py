@@ -1,10 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 Interface for all instrument specific information
 The actual info is contained in the instruments/{name}.py modules/classes, which are all subclasses of "common"
 """
 
+import datetime
 import importlib
+
+from pathlib import Path
 
 from .common import Instrument
 
@@ -32,9 +34,9 @@ def load_instrument(instrument_name: str) -> Instrument:
     if instrument_name is None:
         instrument_name = "common"
 
-    fname = ".instruments.%s" % instrument_name.lower()
+    fname = f".instruments.{instrument_name.lower()}.instrument"
     lib = importlib.import_module(fname, package="pyreduce")
-    instrument = getattr(lib, instrument_name.upper())
+    instrument = getattr(lib, instrument_name, instrument_name.upper())
     instrument = instrument()
 
     return instrument
@@ -58,7 +60,7 @@ def get_instrument_info(instrument_name: str):
     return instrument.info
 
 
-def sort_files(input_dir, target, night, instrument, mode, **kwargs):
+def sort_files(input_dir: Path, target: str, night: datetime.date, instrument: str, mode: str, **kwargs):
     """Sort a list of files into different categories and discard files that are not used
 
     Parameters

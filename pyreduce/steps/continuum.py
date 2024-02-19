@@ -6,7 +6,7 @@ from os.path import join
 from pyreduce.continuum_normalization import continuum_normalize, splice_orders
 from .step import Step
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class ContinuumNormalization(Step):

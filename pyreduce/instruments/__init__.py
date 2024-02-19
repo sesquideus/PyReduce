@@ -1,7 +1,7 @@
 from .common import Instrument, InstrumentWithModes
 
-from .andes import ANDES
-from .crires_plus import CRIRES_PLUS
-from .uves import UVES
+from pyreduce.instruments.andes.andes import ANDES
+from pyreduce.instruments.crires_plus.crires_plus import CRIRES_PLUS
+from pyreduce.instruments.uves.uves import UVES
 
 __all__ = ['ANDES', 'CRIRES_PLUS', 'UVES']

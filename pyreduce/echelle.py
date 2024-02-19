@@ -11,7 +11,7 @@ import astropy.io.fits as fits
 import numpy as np
 import scipy.constants
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Echelle:

@@ -21,7 +21,7 @@ from scipy.special import binom
 from . import __version__
 from .clipnflip import clipnflip
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class ConfigurationError(Exception):
@@ -62,7 +62,7 @@ def log_version():
     logger.debug("PyReduce version: %s", __version__)
 
 
-def start_logging(log_file="log.log"):
+def start_logging(log_file: str = "log.log"):
     """Start logging to log file and command line
 
     Parameters
@@ -82,7 +82,7 @@ def start_logging(log_file="log.log"):
     log_version()
 
 
-def vac2air(wl_vac):
+def vac2air(wl_vac: np.ndarray[float]) -> np.ndarray[float]:
     """
     Convert vacuum wavelengths to wavelengths in air
     Author: Nikolai Piskunov
@@ -101,7 +101,7 @@ def vac2air(wl_vac):
     return wl_air
 
 
-def air2vac(wl_air):
+def air2vac(wl_air: np.ndarray[float]) -> np.ndarray[float]:
     """
     Convert wavelengths in air to vacuum wavelength
     Author: Nikolai Piskunov
@@ -122,6 +122,7 @@ def air2vac(wl_air):
 
 def swap_extension(fname, ext, path=None):
     """exchange the extension of the given file with a new one"""
+    # TODO: Can be replaced by Path.with_extension
     if path is None:
         path = os.path.dirname(fname)
     nameout = os.path.basename(fname)
@@ -140,8 +141,8 @@ def find_first_index(arr, value):
         raise Exception("Value %s not found" % value)
 
 
-def interpolate_masked(masked):
-    """Interpolate masked values, from non masked values
+def interpolate_masked(masked: np.ma.masked_array):
+    """Interpolate masked values, from non-masked values
 
     Parameters
     ----------
@@ -151,7 +152,7 @@ def interpolate_masked(masked):
     Returns
     -------
     interpolated : array
-        interpolated non masked array
+        interpolated non-masked array
     """
 
     mask = np.ma.getmaskarray(masked)

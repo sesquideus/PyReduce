@@ -24,7 +24,7 @@ import os
 
 from cffi import FFI
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 CWD = os.path.dirname(__file__)

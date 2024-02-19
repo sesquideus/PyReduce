@@ -22,6 +22,7 @@ class Workflow(metaclass=abc.ABCMeta):
     steps: list = []
     order_range: tuple[int, int] = (0, 0)
     dataset_class: typing.ClassVar = None
+    # Default path for downloading and processing datasets
     local_dir: Path = Path("~/astar/pyreduce/data/").expanduser()
     base_dir_template: str = None
     input_dir_template: str = None
@@ -35,7 +36,8 @@ class Workflow(metaclass=abc.ABCMeta):
         self.args = self.argparser.parse_args()
 
         self.configuration = None
-        self.base_dir_template = str(self.dataset_class(local_dir_template=self.local_dir).data_dir)
+        self.dataset = self.dataset_class(local_dir_template=self.local_dir)
+        self.base_dir_template = str(self.dataset.data_dir)
 
         self.debug = self.args.debug
         logger.setLevel(logging.DEBUG if self.debug else logging.INFO)

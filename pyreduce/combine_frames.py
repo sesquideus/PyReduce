@@ -23,7 +23,7 @@ from .instruments.instrument_info import load_instrument
 from .util import gaussbroad, gaussfit, remove_bias
 from .instruments import Instrument
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def running_median(arr: np.ndarray, size: int) -> np.ndarray:

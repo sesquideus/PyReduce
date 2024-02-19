@@ -11,9 +11,9 @@ import re
 
 from astropy.time import Time
 
-from .common import InstrumentWithModes, HeaderGetter
+from pyreduce.instruments.common import InstrumentWithModes, HeaderGetter
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class MCDONALD(InstrumentWithModes):

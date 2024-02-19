@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy.io import fits
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def clipnflip(image: np.ndarray,

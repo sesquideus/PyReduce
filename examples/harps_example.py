@@ -8,7 +8,6 @@ import os.path
 
 import pyreduce
 from pyreduce import datasets
-from pyreduce.instruments.harps import HARPS
 
 # define parameters
 instrument = "HARPS"
