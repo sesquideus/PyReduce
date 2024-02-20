@@ -8,6 +8,7 @@ from pathlib import Path
 
 from pyreduce.combine_frames import combine_bias, combine_polynomial
 from .step import Step
+from pyreduce import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,9 @@ class Bias(Step):
         bhead : FITS header
             header of the master bias
         """
-        logger.info(f"Running {self.__class__.__name__} step with files\n{pprint.pformat(files)}")
+        logger.info(f"Running {c.act(self.__class__.__name__)} step with {c.num(len(files))} files")
+        for file in files:
+            logger.debug(f"\t{file}")
 
         if self.degree == 0:
             # If the degree is 0, we just combine all images into a single master bias

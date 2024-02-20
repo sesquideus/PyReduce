@@ -1,6 +1,7 @@
 import logging
 
 from .step import Step
+from .. import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +34,8 @@ class Mask(Step):
         try:
             mask, _ = self.instrument.load_fits(mask_file, self.mode, extension=0)
             mask = ~mask.data.astype(bool)  # REDUCE mask are inverse to numpy masks
-            logger.info(f"Loaded a bad pixel mask file '{mask_file}'")
+            logger.info(f"Loaded a bad pixel mask file {c.path(mask_file)}")
         except (FileNotFoundError, ValueError):
-            logger.error(f"Bad Pixel Mask datafile '{mask_file}' not found. Using all pixels instead.")
+            logger.error(f"Bad pixel mask datafile {c.path(mask_file)} not found. Using all pixels instead.")
             mask = False
         return mask

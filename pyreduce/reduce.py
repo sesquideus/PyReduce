@@ -35,6 +35,8 @@ from .instruments.instrument import Instrument
 from .instruments.instrument_info import load_instrument
 from .reducer import Reducer
 
+from . import colour as c
+
 # TODO Naming of functions and modules
 # TODO License
 
@@ -44,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 def main(instrument_name: str,
          target: str | list[str] = None,
-         night: datetime.date | list[datetime.date] | None = None,  # TODO Change this to datetime.date
+         night: datetime.date | list[datetime.date] | None = None,
          modes: str | list[str] | dict[Instrument, str] = None,
          *,
          steps: str | list[str] = "all",
@@ -55,8 +57,7 @@ def main(instrument_name: str,
          order_range=None,
          allow_calibration_only: bool = False,
          skip_existing: bool = False,
-         debug: bool = False, # until converted to a class
-    ):
+         debug: bool = False):  # until converted to a class
     r"""
     Main entry point for REDUCE scripts,
     default values can be changed as required if reduce is used as a script
@@ -98,7 +99,7 @@ def main(instrument_name: str,
     """
 
     logger.setLevel(logging.DEBUG if debug else logging.INFO)
-    logger.debug(f"Running main for target '{target}' on nights '{night}'")
+    logger.debug(f"Running reduction for target {c.name(target)} on nights {c.name(night)}")
 
     # If there is a single target, create a length-1 list from it
     if isinstance(target, str):
@@ -110,9 +111,7 @@ def main(instrument_name: str,
     if night is None:
         nights = []
     elif isinstance(night, datetime.date):
-        nights = [str(night)]
-    else:
-        nights = list(map(str, night))
+        nights = [night]
 
     is_none = {
         "modes": modes is None,
@@ -128,7 +127,7 @@ def main(instrument_name: str,
     # config: paramters for the current reduction
     # info: constant, instrument specific parameters
 
-    logger.debug(f"Configuration is:")
+    logger.debug(f"Current configuration is:")
     if debug:
         pprint.pprint(configuration)
 
@@ -146,10 +145,10 @@ def main(instrument_name: str,
         output_dir_template = config["reduce"]["output_dir"]
 
     input_dir_template: str = os.path.join(base_dir_template, input_dir_template)
-    logger.info(f"input_dir_template is \"{input_dir_template}\"")
+    logger.debug(f"input_dir_template is {c.path(input_dir_template)}")
 
     output_dir_template: str = os.path.join(base_dir_template, output_dir_template)
-    logger.info(f"output_dir_template is \"{output_dir_template}")
+    logger.debug(f"output_dir_template is {c.path(output_dir_template)}")
 
     if modes is None:
         modes = info["modes"]
@@ -157,6 +156,8 @@ def main(instrument_name: str,
         modes = [modes]
 
     for t, n, m in itertools.product(targets, nights, modes):
+        assert isinstance(n, datetime.date)
+
         log_file = os.path.join(
             base_dir_template.format(instrument=instrument.name, mode=modes, target=t),
             "logs/%s.log" % t,
@@ -172,14 +173,15 @@ def main(instrument_name: str,
             allow_calibration_only=allow_calibration_only,
         )
         if len(files) == 0:
-            logger.warning(f"No files found for instrument {instrument}, target: {t}, night: {n}, mode: {m} "
-                           f"in folder {input_dir_template}")
+            logger.warning(f"No files found for instrument {c.name(instrument)}, target: {c.name(t)}, "
+                           f"night: {c.name(n)}, mode: {m} in folder {c.path(input_dir_template)}")
         else:
             for k, f in files:
                 logger.info("Settings:")
                 for key, value in k.items():
                     logger.info("%s: %s", key, value)
-                logger.debug("Files:\n%s", f)
+
+                logger.debug(f"Files:\n{pprint.pformat(f)}")
 
                 reducer = Reducer(
                     f,

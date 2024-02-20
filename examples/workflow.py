@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pyreduce
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('pyreduce')
 
 
 class Workflow(metaclass=abc.ABCMeta):

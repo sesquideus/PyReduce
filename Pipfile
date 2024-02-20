@@ -22,6 +22,7 @@ sphinx = "*"
 tqdm = "*"
 wget = "*"
 pillow = "*"
+colorama = "*"
 
 [dev-packages]
 pytest = "*"

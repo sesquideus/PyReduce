@@ -47,11 +47,6 @@ class Dataset(metaclass=abc.ABCMeta):
         ----------
         local_dir_template : str, optional
             directory to save data at (default: "./")
-
-        Returns
-        -------
-        dataset_dir : str
-            directory where the data was saved
         """
         # If no local dir is provided, use the parent of current file
         self._local_dir_template = local_dir_template if local_dir_template is not None else Path(__file__).parent.name

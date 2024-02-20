@@ -91,7 +91,7 @@ def load_config(configuration: None | str | list | dict | Path, instrument_name:
 
     # If it doesn't raise an Exception everything is as expected
     validate_config(settings)
-    logger.debug("Configuration succesfully validated")
+    logger.debug("Configuration successfully validated")
 
     return settings
 
@@ -163,8 +163,8 @@ def validate_config(config) -> None:
     """Test that the input configuration complies with the expected schema
 
     Since it requires features from jsonschema 3+, it will only run if that is installed.
-    Otherwise show a warning but continue. This is in case some other module needs an earlier,
-    jsonschema (looking at you jwst).
+    Otherwise, show a warning but continue. This is in case some other module needs an earlier
+    jsonschema (looking at you JWST).
 
     If the function runs through without raising an exception, the check was successful or skipped.
 

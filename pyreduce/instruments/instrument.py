@@ -9,6 +9,8 @@ import itertools
 import json
 import logging
 import os.path
+import typing
+
 import numpy as np
 
 from astropy.io import fits
@@ -16,11 +18,12 @@ from astropy.time import Time
 from dateutil import parser
 from pathlib import Path
 from tqdm import tqdm
-from typing import Any
+from typing import Any, Iterable
 
 from ..clipnflip import clipnflip
 from .filters import Filter, InstrumentFilter, ModeFilter, NightFilter, ObjectFilter
 from ..util import ConfigurationError
+from .. import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -234,7 +237,7 @@ class Instrument(metaclass=abc.ABCMeta):
 
         ONLY the header is returned if header_only is True
         """
-        logger.debug(f"Loading a FITS file '{fname}'")
+        logger.debug(f"Loading a FITS file {c.path(fname)}")
 
         hdu = fits.open(fname)
         h_prime = hdu[0].header
@@ -334,7 +337,7 @@ class Instrument(metaclass=abc.ABCMeta):
         return header
 
     @staticmethod
-    def find_files(input_dir) -> list[str]:
+    def find_files(input_dir: Path) -> Iterable[Path]:
         """Find FITS files in the given folder
 
         Parameters
@@ -344,12 +347,15 @@ class Instrument(metaclass=abc.ABCMeta):
 
         Returns
         -------
-        files: array(string)
+        files: Iterable(Path)
             absolute path filenames
         """
-        files = glob.glob(input_dir + "/*.fits")
-        files += glob.glob(input_dir + "/*.fits.gz")
-        return files
+        # files = glob.glob(input_dir + "/*.fits")
+        # files += glob.glob(input_dir + "/*.fits.gz")
+        # return list(map(Path, files))
+
+        return list(itertools.chain(input_dir.glob("*.fits"),
+                                    input_dir.glob("*.fits.gz")))
 
     def get_expected_values(self,
                             target: str,
@@ -416,7 +422,7 @@ class Instrument(metaclass=abc.ABCMeta):
         }
         return expectations
 
-    def populate_filters(self, files: list[Path]) -> list[Filter]:
+    def populate_filters(self, files: Iterable[Path]) -> list[Filter]:
         """Extract values from the fits headers and store them in `self.filters`
 
         Parameters
@@ -427,7 +433,7 @@ class Instrument(metaclass=abc.ABCMeta):
         Returns
         -------
         filters: list(Filter)
-            list of populated filters (identical to self.filters)
+            list of populated filters (identical to `self.filters`)
         """
         # Empty filters
         for _, fil in self.filters.items():
@@ -574,7 +580,7 @@ class Instrument(metaclass=abc.ABCMeta):
                    night: datetime.date,
                    *args,
                    allow_calibration_only: bool = False,
-                   **kwargs) -> list[Path]:
+                   **kwargs) -> list[dict[str, dict[str: list[Path]]]]:
         """
         Sort a set of fits files into different categories
         types are: bias, flat, wavecal, orderdef, spec
@@ -589,6 +595,7 @@ class Instrument(metaclass=abc.ABCMeta):
             observation night, possibly with wildcards
         mode : str
             instrument mode
+            # TODO This seems to be missing from parameters
         Returns
         -------
         files_per_night : list[dict{str:dict{str:list[str]}}]
@@ -597,8 +604,10 @@ class Instrument(metaclass=abc.ABCMeta):
         nights_out : list[datetime]
             a list of observation times, same order as files_per_night
         """
-        input_dir_template = input_dir_template.format(target=target, night=night, instrument=self.name, **kwargs)
-        files = self.find_files(input_dir_template)
+        input_dir = Path(input_dir_template.format(target=target,
+                                                   night=night.isoformat(),
+                                                   instrument=self.name, **kwargs))
+        files = self.find_files(input_dir)
         ev = self.get_expected_values(target, night, *args, **kwargs)
         files = self.apply_filters(files, ev, allow_calibration_only=allow_calibration_only)
         return files
@@ -608,7 +617,7 @@ class Instrument(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        header : fits.header, dict
+        header : fits.Header, dict
             header of the wavelength calibration file
         mode : str
             instrument mode

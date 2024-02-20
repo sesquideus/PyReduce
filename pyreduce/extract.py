@@ -24,6 +24,7 @@ from tqdm import tqdm
 
 from .cwrappers import slitfunc, slitfunc_curved
 from .util import make_index, resample
+from . import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -1097,7 +1098,7 @@ def arc_extraction(
     x = np.arange(ncol)
 
     for i in tqdm(range(nord), desc="Order"):
-        logger.debug("Calculating order %i out of %i", i + 1, nord)
+        logger.debug(f"Calculating order {c.num(f'{i + 1:3d}')} out of {c.num(f'{nord:3d}')}")
 
         x_left_lim = column_range[i, 0]
         x_right_lim = column_range[i, 1]

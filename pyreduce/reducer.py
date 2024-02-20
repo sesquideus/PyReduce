@@ -2,23 +2,26 @@ import datetime
 import logging
 import os
 import glob
-import typing
 
 from pathlib import Path
+from typing import ClassVar
+from collections import OrderedDict
 
-from pyreduce.instruments.instrument import Instrument
-from pyreduce.instruments.instrument_info import load_instrument
-from pyreduce.steps import (Step, ExtractionStep, CalibrationStep,
-                            Bias, Flat, Mask, OrderTracing, SlitCurvatureDetermination, Finalize, BackgroundScatter,
-                            NormalizeFlatField, RectifyImage, ScienceExtraction,
-                            ContinuumNormalization, LaserFrequencyCombMaster, LaserFrequencyCombFinalize,
-                            WavelengthCalibrationInitialize, WavelengthCalibrationMaster, WavelengthCalibrationFinalize)
+from .instruments.instrument import Instrument
+from .instruments.instrument_info import load_instrument
+from .steps import (Step, ExtractionStep, CalibrationStep,
+                   Bias, Flat, Mask, OrderTracing, SlitCurvatureDetermination, Finalize, BackgroundScatter,
+                   NormalizeFlatField, RectifyImage, ScienceExtraction,
+                   ContinuumNormalization, LaserFrequencyCombMaster, LaserFrequencyCombFinalize,
+                   WavelengthCalibrationInitialize, WavelengthCalibrationMaster, WavelengthCalibrationFinalize)
+from . import colour as c
 
 logger = logging.getLogger(__name__)
 
 
 class Reducer:
     step_order: dict[str, int] = {
+        # "mask": 5,  TODO: This was not here but I do not understand why, maybe Thomas can explain
         "bias": 10,
         "flat": 20,
         "orders": 30,
@@ -36,11 +39,12 @@ class Reducer:
         "finalize": 100,
     }
 
-    modules: dict[str, typing.ClassVar] = {
+    modules: OrderedDict[str, ClassVar] = {
         "mask": Mask,
         "bias": Bias,
         "flat": Flat,
         "orders": OrderTracing,
+        "curvature": SlitCurvatureDetermination,
         "scatter": BackgroundScatter,
         "norm_flat": NormalizeFlatField,
         "wavecal_master": WavelengthCalibrationMaster,
@@ -48,11 +52,10 @@ class Reducer:
         "wavecal": WavelengthCalibrationFinalize,
         "freq_comb_master": LaserFrequencyCombMaster,
         "freq_comb": LaserFrequencyCombFinalize,
-        "curvature": SlitCurvatureDetermination,
+        "rectify": RectifyImage,
         "science": ScienceExtraction,
         "continuum": ContinuumNormalization,
         "finalize": Finalize,
-        "rectify": RectifyImage,
     }
 
     def __init__(self,
@@ -121,13 +124,13 @@ class Reducer:
         # But give a warning
         if load:
             try:
-                logger.info(f"Loading data from step '{step}'")
+                logger.info(f"Loading data from step {c.act(step)}")
                 data = module.load(**kwargs)
             except FileNotFoundError:
-                logger.warning(f"Intermediate file(s) for loading step {step} not found. Running it instead.")
+                logger.warning(f"Intermediate file(s) for loading step {c.act(step)} not found. Running it instead.")
                 data = self.run_module(step, load=False)
         else:
-            logger.info(f"Running step '{step}'")
+            logger.info(f"Running step {c.act(step)}")
             if step in self.files.keys():
                 kwargs["files"] = self.files[step]
 
@@ -174,10 +177,15 @@ class Reducer:
                 if exists[i]:
                     data["finalize"][i] = fname_out[0]
 
+            logger.debug(f"These steps already exists: {c.name(exists)}")
+
             if all(exists):
                 logger.info("All science files already exist, skipping this set")
                 logger.debug("--------------------------------")
                 return data
+        else:
+            logger.info(f"Flag {c.param('skip_existing')} is {c.over('False')} or {c.param('finalize')} not in steps, "
+                        f"all steps will be performed")
 
         steps.sort(key=lambda x: self.step_order[x])
 

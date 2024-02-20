@@ -8,6 +8,7 @@ Used to create master bias and master flat
 import datetime
 import logging
 import os
+import pprint
 
 import astropy.io.fits as fits
 import matplotlib.pyplot as plt
@@ -22,6 +23,7 @@ from .clipnflip import clipnflip
 from .instruments.instrument_info import load_instrument
 from .util import gaussbroad, gaussfit, remove_bias
 from .instruments import Instrument
+from . import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -253,16 +255,13 @@ def combine_frames(files: list[str],
         f"An array of files is expected as an input, got {type(files)}"
     assert isinstance(instrument, Instrument), "All instruments must be Instrument instances at this stage"
 
-    logger.debug(f"Combining frames for instrument {instrument.name} in mode {mode} for files {files}")
+    logger.debug(f"Combining frames for instrument {instrument.name} in mode {mode} for files:")
+    for i, file in zip(range(len(files)), files):
+        logger.debug(f"\t{i}\t{file}")
 
     DEBUG_NROWS = 100  # print status update every DEBUG_NROWS rows (if debug is True)
     if instrument is None or isinstance(instrument, str):
         instrument = load_instrument(instrument)
-
-    # summarize file info
-    logger.debug("Files:")
-    for i, fname in zip(range(len(files)), files):
-        logger.debug("    %i\t%s", i, fname)
 
     # Only one image
     if len(files) == 0:
@@ -381,10 +380,8 @@ def combine_frames(files: list[str],
 
             # for each row
             for row in tqdm(range(y_bottom, y_top), desc="Rows"):
-                if (row) % DEBUG_NROWS == 0:
-                    logger.debug(
-                        "%i rows processed - %i pixels fixed so far", row, n_fixed
-                    )
+                if row % DEBUG_NROWS == 0:
+                    logger.debug(f"{c.num(f'{row:5d}')} rows processed - {c.num(f'{n_fixed:6d}')} pixels fixed so far")
 
                 # load current row
                 idx = index(row, x_left, x_right)
@@ -578,7 +575,7 @@ def combine_polynomial(files: list[Path],
                        instrument: Instrument,
                        mode: str,
                        *,
-                       mask: np.ndarray,
+                       mask: np.ndarray[bool],
                        degree: int = 1,
                        plot: bool = False,
                        plot_title: str = None,
@@ -653,13 +650,14 @@ def combine_polynomial(files: list[Path],
     return bias, bhead
 
 
-def combine_bias(files: list[str],
-                 instrument,
-                 mode,
-                 extension=None,
+def combine_bias(files: list[Path],
+                 instrument: Instrument,
+                 mode: str,
+                 extension: int | str = None,  # ToDo I guess only int makes sense...?
                  plot: bool = False,
                  plot_title: str = None,
-                 science_observation_time=None,
+                 science_observation_time = None,
+                 debug: bool = False,
                  **kwargs):
     """
     Combine bias frames, determine read noise, reject bad pixels.
@@ -685,11 +683,9 @@ def combine_bias(files: list[str],
         bias image and header
     """
 
-    debug = kwargs.get("debug", False)
-
     n = len(files)
     if n == 0:
-        raise FileNotFoundError("No bias file(s) given")
+        raise FileNotFoundError("Cannot combine bias: no bias file(s) given")
     elif n == 1:
         # if there is just one element compare it with itself, not really useful, but it works
         list1 = list2 = files
@@ -753,10 +749,10 @@ def combine_bias(files: list[str],
         bgnoise = biasnoise * np.sqrt(n)
 
         # Print diagnostics.
-        logger.debug("change in bias between image sets= %f electrons", gain * par[1])
-        logger.debug("measured background noise per image= %f", bgnoise)
-        logger.debug("background noise in combined image= %f", biasnoise)
-        logger.debug("fixing %i bad pixels", nbad)
+        logger.debug(f"Change in bias between image sets = {c.num(gain * par[1])} electrons")
+        logger.debug(f"Measured background noise per image = {c.num(bgnoise)}")
+        logger.debug(f"Background noise in combined image = {c.num(biasnoise)}")
+        logger.debug(f"Fixing {c.num(nbad)} bad pixels")
 
         if debug:  # pragma: no cover
             # Plot noise distribution.
@@ -774,7 +770,7 @@ def combine_bias(files: list[str],
             plt.axhline(3 * consig, c="b")
             plt.axvline(gmin, c="b")
             plt.axvline(gmax, c="b")
-            plt.title("contamination estimation")
+            plt.title("Contamination estimation")
             plt.show()
     else:
         diff = 0

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Define Version
 from ._version import get_versions
 
@@ -31,14 +30,15 @@ logger.setLevel(logging.DEBUG)
 logging.captureWarnings(True)
 
 console = TqdmLoggingHandler()
-console.setLevel(logging.INFO)
+console.setLevel(logging.DEBUG)
 
 try:
     import colorlog
 
-    console.setFormatter(
-        colorlog.ColoredFormatter("%(log_color)s%(levelname)s - %(message)s")
-    )
+    console.setFormatter(colorlog.ColoredFormatter("[{log_color}{asctime} {levelname:<3.3}{reset}]: {message}",
+                                                   style='{',
+                                                   datefmt="%Y-%m-%d %H:%M:%S",
+                                                   ))
     del colorlog
 except ImportError:
     console.setFormatter("%(levelname)s - %(message)s")
