@@ -16,7 +16,7 @@ from dateutil import parser
 from pathlib import Path
 from tqdm import tqdm
 
-from pyreduce.instruments.common import Instrument, HeaderGetter, observation_date_to_night
+from pyreduce.instruments.instrument import Instrument, HeaderGetter, observation_date_to_night
 
 logger = logging.getLogger(__name__)
 

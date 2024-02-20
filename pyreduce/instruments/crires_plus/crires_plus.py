@@ -12,7 +12,7 @@ import numpy as np
 from astropy.io import fits
 from pathlib import Path
 
-from pyreduce.instruments.common import Instrument, HeaderGetter, observation_date_to_night
+from pyreduce.instruments.instrument import Instrument, HeaderGetter, observation_date_to_night
 from pyreduce.instruments.filters import Filter
 
 logger = logging.getLogger(__name__)

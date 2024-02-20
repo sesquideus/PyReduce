@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class FitsIOStep(Step, metaclass=abc.ABCMeta):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._loadDependsOn += ["mask"]
+        self._load_depends_on += ["mask"]
         self.allow_failure = True
 
     def save(self, data: np.ndarray, head, dtype=None) -> None:

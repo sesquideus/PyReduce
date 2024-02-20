@@ -6,7 +6,7 @@ import typing
 
 from pathlib import Path
 
-from pyreduce.instruments.common import Instrument
+from pyreduce.instruments.instrument import Instrument
 from pyreduce.instruments.instrument_info import load_instrument
 from pyreduce.steps import (Step, ExtractionStep, CalibrationStep,
                             Bias, Flat, Mask, OrderTracing, SlitCurvatureDetermination, Finalize, BackgroundScatter,
@@ -109,7 +109,7 @@ class Reducer:
         module = self.modules[step](*self.inputs, **self.config.get(step, {}))
 
         # Load the dependencies necessary for loading/running this step
-        dependencies = module.dependsOn if not load else module.loadDependsOn
+        dependencies = module.depends_on if not load else module.load_depends_on
 
         for dependency in dependencies:
             if dependency not in self.data.keys():

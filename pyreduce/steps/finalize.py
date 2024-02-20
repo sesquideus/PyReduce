@@ -15,7 +15,7 @@ class Finalize(Step):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["continuum", "freq_comb", "config"]
+        self._depends_on += ["continuum", "freq_comb", "config"]
         self.filename = config["filename"]
 
     def output_file(self, number, name) -> str:

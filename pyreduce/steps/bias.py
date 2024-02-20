@@ -17,8 +17,8 @@ class Bias(Step):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["mask"]
-        self._loadDependsOn += ["mask"]
+        self._depends_on += ["mask"]
+        self._load_depends_on += ["mask"]
 
         # polynomial degree of the fit between exposure time and pixel values
         self.degree: int = config["degree"]

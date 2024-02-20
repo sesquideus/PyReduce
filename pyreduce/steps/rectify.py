@@ -1,3 +1,4 @@
+import numpy as np
 from astropy.io import fits
 from tqdm import tqdm
 
@@ -12,7 +13,7 @@ class RectifyImage(Step):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["files", "orders", "curvature", "mask", "freq_comb"]
+        self._depends_on += ["files", "orders", "curvature", "mask", "freq_comb"]
         # self._loadDependsOn += []
 
         self.extraction_width = config["extraction_width"]
@@ -30,9 +31,7 @@ class RectifyImage(Step):
 
         rectified = {}
         for fname in tqdm(files, desc="Files"):
-            img, head = self.instrument.load_fits(
-                fname, self.mode, mask=mask, dtype="f8"
-            )
+            img, head = self.instrument.load_fits(fname, self.mode, mask=mask, dtype="f8")
 
             images, cr, xwd = rectify_image(
                 img,

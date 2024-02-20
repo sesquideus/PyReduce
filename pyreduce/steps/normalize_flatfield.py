@@ -14,7 +14,7 @@ class NormalizeFlatField(Step):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["flat", "orders", "scatter", "curvature"]
+        self._depends_on += ["flat", "orders", "scatter", "curvature"]
 
         #:{'normalize'}: Extraction method to use
         self.extraction_method = config["extraction_method"]

@@ -15,12 +15,12 @@ logger = logging.getLogger(__name__)
 
 def estimate_background_scatter(
     img: np.ndarray[float],
-    orders,
-    column_range=None,
+    orders: np.ndarray[float],
+    column_range: np.ndarray[float] = None,
     extraction_width: float | np.ndarray[float] = 0.1,
     scatter_degree: int = 4,
-    sigma_cutoff=2,
-    border_width=10,
+    sigma_cutoff: float = 2,
+    border_width: int = 10,
     plot: bool = False,
     plot_title: str = None,
 ):

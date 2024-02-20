@@ -14,7 +14,7 @@ class Flat(CalibrationStep):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._loadDependsOn += ["mask"]
+        self._load_depends_on += ["mask"]
 
     @property
     def savefile(self):

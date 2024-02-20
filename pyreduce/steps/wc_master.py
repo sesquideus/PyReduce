@@ -15,7 +15,7 @@ class WavelengthCalibrationMaster(CalibrationStep, ExtractionStep):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["norm_flat", "curvature"]
+        self._depends_on += ["norm_flat", "curvature"]
 
     @property
     def savefile(self):

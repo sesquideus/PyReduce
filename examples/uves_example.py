@@ -17,7 +17,17 @@ class WorkflowExampleUVES(Workflow):
     target: str = r"HD[- ]?132205"
     night: datetime.date = datetime.date(2010, 4, 1)
     mode: str = "middle"
-    steps: list[str] = ["bias", "flat", "orders", "norm_flat", "wavecal", "curvature", "science", "continuum", "finalize"]
+    steps: list[str] = [
+        "bias",
+        "flat",
+        "orders",
+        "norm_flat",
+        "wavecal",
+        "curvature",
+        "science",
+        "continuum",
+        "finalize"
+    ]
     local_dir: Path = Path("~/astar/pyreduce/data/").expanduser()
     base_dir_template: str = None
     input_dir_template: str = "raw/"

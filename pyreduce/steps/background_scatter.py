@@ -13,7 +13,7 @@ class BackgroundScatter(CalibrationStep):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["orders"]
+        self._depends_on += ["orders"]
 
         # Polynomial degrees for the background scatter fit, in row, column direction
         self.scatter_degree: int | tuple[int, int] = config["scatter_degree"]

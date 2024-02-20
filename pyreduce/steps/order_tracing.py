@@ -1,6 +1,7 @@
 import logging
 import numpy as np
-import os
+
+from pathlib import Path
 
 from pyreduce.trace_orders import mark_orders
 from .calibration import CalibrationStep
@@ -38,9 +39,9 @@ class OrderTracing(CalibrationStep):
         self.manual: bool = config["manual"]
 
     @property
-    def savefile(self):
+    def savefile(self) -> Path:
         """str: Name of the order tracing file"""
-        return os.path.join(self.output_dir, self.prefix + ".ord_default.npz")
+        return Path(self.output_dir) / f"{self.prefix}.ord_default.npz"
 
     def run(self, files, mask, bias):
         """Determine polynomial coefficients describing order locations
@@ -110,7 +111,7 @@ class OrderTracing(CalibrationStep):
         column_range : array of shape (nord, 2)
             first and last(+1) column that carries signal in each order
         """
-        logger.info("Order tracing file: %s", self.savefile)
+        logger.info(f"Order tracing file '{self.savefile}'")
         data = np.load(self.savefile, allow_pickle=True)
         orders = data["orders"]
         column_range = data["column_range"]

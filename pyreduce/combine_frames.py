@@ -544,21 +544,18 @@ def combine_calibrate(files: list[str],
             #     flat -= bias * np.ma.mean(flat) / np.ma.mean(bias)
             # elif bias_scaling == "median":
             #     flat -= bias * np.ma.median(flat) / np.ma.median(bias)
+            # ToDo maybe these here should be enabled as well
             else:
-                raise ValueError(
-                    "Unexpected value for 'bias_scaling', expected one of ['exposure_time'], but got %s"
-                    % bias_scaling
-                )
+                raise ValueError("Unexpected value for 'bias_scaling', expected one of "
+                                 f"['exposure_time'], but got {bias_scaling}")
 
     # Remove the Flat
     if norm is not None and norm_scaling != "none":
         if norm_scaling == "divide":
             orig /= norm
         else:
-            raise ValueError(
-                "Unexpected value for 'norm_scaling', expected one of ['divide', 'none'], but got %s"
-                % norm_scaling
-            )
+            raise ValueError(f"Unexpected value for 'norm_scaling', expected one of "
+                             f"['divide', 'none'], but got {norm_scaling}")
 
     if plot:  # pragma: no cover
         title = "Master"
@@ -570,9 +567,9 @@ def combine_calibrate(files: list[str],
         bot, top = np.percentile(orig[orig != 0], (10, 90))
         plt.imshow(orig, vmin=bot, vmax=top, origin="lower")
         if plot != "png":
-            plt.show()
-        else:
             plt.savefig("crires_master_flat.png")
+        else:
+            plt.show()
 
     return orig, thead
 
@@ -606,6 +603,8 @@ def combine_polynomial(files: list[Path],
         whether to plot the results, by default False
     plot_title : str, optional
         Title of the plot, by default None
+    plot_cmap : str, optional
+        Colormap to use in the plot
 
     Returns
     -------
@@ -617,7 +616,7 @@ def combine_polynomial(files: list[Path],
     hdus = [instrument.load_fits(f, mode) for f in tqdm(files)]
     data = np.array([h[0] for h in hdus])
     exptimes = np.array([h[1]["EXPTIME"] for h in hdus])
-    # Numpy polyfit can fit all polynomials at the same time
+    # Numpy polyfit can fit all polynomials at the same time,
     # but we need to flatten the pixels into 1 dimension
     data_flat = data.reshape((len(exptimes), -1))
     coeffs = np.polyfit(exptimes, data_flat, degree)

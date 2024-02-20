@@ -10,7 +10,7 @@ from pathlib import Path
 from astropy.io import fits
 from typing import Any
 
-from .common import Instrument
+from .instrument import Instrument
 
 
 def load_instrument(instrument_name: str | None = None) -> Instrument:

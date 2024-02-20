@@ -15,8 +15,8 @@ class ScienceExtraction(CalibrationStep, ExtractionStep):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["norm_flat", "curvature", "scatter"]
-        self._loadDependsOn += ["files"]
+        self._depends_on += ["norm_flat", "curvature", "scatter"]
+        self._load_depends_on += ["files"]
 
     def science_file(self, name):
         """Name of the science file in disk, based on the input file
@@ -67,11 +67,11 @@ class ScienceExtraction(CalibrationStep, ExtractionStep):
         sigmas : list(array of shape (nord, ncol))
             uncertainties of the extracted spectra
         columns : list(array of shape (nord, 2))
-            column ranges for each spectra
+            column ranges for each spectrum
         """
         heads, specs, sigmas, columns = [], [], [], []
         for fname in tqdm(files, desc="Files"):
-            logger.info("Science file: %s", fname)
+            logger.info(f"Science file: '{fname}'")
             # Calibrate the input image
             im, head = self.calibrate([fname], mask, bias, norm_flat)
             # Optimally extract science spectrum
@@ -104,7 +104,7 @@ class ScienceExtraction(CalibrationStep, ExtractionStep):
         """
         nameout = self.science_file(fname)
         echelle.save(nameout, head, spec=spec, sig=sigma, columns=column_range)
-        logger.info("Created science file: %s", nameout)
+        logger.info(f"Created science file: '{nameout}'")
 
     def load(self, files):
         """Load all science spectra from disk

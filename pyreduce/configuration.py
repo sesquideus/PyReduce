@@ -12,30 +12,29 @@ import json
 import logging
 import jsonschema
 
-from os.path import dirname, join
 from pathlib import Path
+
+from pyreduce.util import ConfigurationError
 
 logger = logging.getLogger(__name__)
 
+
 if int(jsonschema.__version__[0]) < 3:  # pragma: no cover
-    logger.warning(
-        "Jsonschema %s found, but at least 3.0.0 is required to check configuration. Skipping the check.",
-        jsonschema.__version__,
-    )
-    hasJsonSchema = False
+    logger.warning(f"Jsonschema {jsonschema.__version__} found, but at least 3.0.0 "
+                   f"is required to check configuration. Skipping the check.")
+    has_json_schema = False
 else:
-    hasJsonSchema = True
+    has_json_schema = True
 
 
-def get_configuration_for_instrument(instrument, **kwargs):
-    local = dirname(__file__)
-    instrument = str(instrument)
-    if instrument in ["pyreduce", None]:
-        fname = join(local, "settings", f"settings_pyreduce.json")
+def get_configuration_for_instrument(instrument_name: str, **kwargs):
+    logger.debug(f"Getting configuration for instrument '{instrument_name}'")
+    if instrument_name in ["pyreduce", None]:
+        fname = Path(__file__).parent / "settings" / "settings_pyreduce.json"
     else:
-        fname = join(local, "settings", f"settings_{instrument.upper()}.json")
+        fname = Path(__file__).parent / "instruments" / instrument_name.lower() / f"settings_{instrument_name}.json"
 
-    config = load_config(fname, instrument)
+    config = load_config(fname, instrument_name)
 
     for kwarg_key, kwarg_value in kwargs.items():
         for key, value in config.items():
@@ -45,32 +44,44 @@ def get_configuration_for_instrument(instrument, **kwargs):
     return config
 
 
-def load_config(configuration, instrument: str, j: int = 0):
-    logger.debug(f"Loading configuration for instrument {instrument})")
+def load_config(configuration: None | str | list | dict | Path, instrument_name: str, j: int = 0):
+    logger.debug(f"Loading configuration for instrument '{instrument_name}'")
 
+    # First convert to proper filename
     if configuration is None:
         logger.warning("No configuration specified, using default values for this instrument")
-        config = get_configuration_for_instrument(instrument, plot=False)
+        config = get_configuration_for_instrument(instrument_name, plot=False)
     elif isinstance(configuration, dict):
-        if instrument in configuration.keys():
-            config = configuration[str(instrument)]
+        if instrument_name in configuration.keys():
+            config = configuration[str(instrument_name)]
         elif "__instrument__" in configuration.keys() and \
-                configuration["__instrument__"] == str(instrument).upper():
+                configuration["__instrument__"] == str(instrument_name).upper():
             config = configuration
         else:
             raise KeyError("This configuration is for a different instrument")
     elif isinstance(configuration, list):
+        assert False, \
+            "I doubt configuration from list is good, but let's see if it ever happens and if not we can remove it"
+        # TODO Verify this
         config = configuration[j]
     elif isinstance(configuration, str):
+        assert False, \
+            "We do not expect a string here but I don't know if it is safe to remove it"
+        # TODO Verify this
+        config = Path(configuration)
+    elif isinstance(configuration, Path):
         config = configuration
+    else:
+        raise TypeError(f"Configuration must be None | dict | list | str, got {type(configuration)}")
 
-    if isinstance(config, str):
-        logger.info("Loading configuration from %s", config)
+    if isinstance(config, str) or isinstance(config, Path):
+        logger.info(f"Loading configuration from {config}")
         try:
             with open(config) as f:
                 config = json.load(f)
         except FileNotFoundError:
-            fname = Path(__file__).parent / "instruments" / instrument.lower() / f"settings_{instrument}.json"
+            fname = Path(__file__).parent / "instruments" / instrument_name.lower() / f"settings_{instrument_name}.json"
+            logger.warning(f"File {config} was not found, defaulting to {fname}")
             with open(fname) as f:
                 config = json.load(f)
 
@@ -168,15 +179,15 @@ def validate_config(config) -> None:
         If there is a problem with the configuration.
         Usually that means a setting has an unallowed value.
     """
-    if not hasJsonSchema:  # pragma: no cover
-        # Can't check with old version
-        return
-    fname = Path(__file__).parent / "instruments" / "settings_schema.json"
+    if has_json_schema:  # pragma: no cover
+        fname = Path(__file__).parent / "instruments" / "settings_schema.json"
 
-    with open(fname) as f:
-        schema = json.load(f)
-    try:
-        jsonschema.validate(schema=schema, instance=config)
-    except jsonschema.ValidationError as ve:
-        logger.error("Configuration failed validation check.\n%s", ve.message)
-        raise ValueError(ve.message)
+        with open(fname) as f:
+            schema = json.load(f)
+        try:
+            jsonschema.validate(schema=schema, instance=config)
+        except jsonschema.ValidationError as exc:
+            logger.error("Configuration failed validation check: %s", exc.message)
+            raise ConfigurationError from exc
+    else:
+        logger.warning("jsonschema is not imported, cannot validate configuration")

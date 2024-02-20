@@ -11,7 +11,7 @@ import re
 
 from astropy.time import Time
 
-from pyreduce.instruments.common import InstrumentWithModes, HeaderGetter
+from pyreduce.instruments.instrument import InstrumentWithModes, HeaderGetter
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 
-from os.path import join
+from pathlib import Path
 
 from pyreduce.wavelength_calibration import WavelengthCalibrationComb
 from .step import Step
@@ -14,8 +14,8 @@ class LaserFrequencyCombFinalize(Step):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["freq_comb_master", "wavecal"]
-        self._loadDependsOn += ["wavecal"]
+        self._depends_on += ["freq_comb_master", "wavecal"]
+        self._load_depends_on += ["wavecal"]
 
         # polynomial degree of the wavelength fit
         self.degree: tuple[int, int] = config["degree"]
@@ -28,12 +28,13 @@ class LaserFrequencyCombFinalize(Step):
         self.lfc_peak_width: int = config["lfc_peak_width"]
 
     @property
-    def savefile(self):
-        """str: Name of the wavelength echelle file"""
-        return join(self.output_dir, self.prefix + ".comb.npz")
+    def savefile(self) -> Path:
+        """ Return the name of the wavelength echelle file"""
+        return self.output_dir / f"{self.prefix}.comb.npz"
 
     def run(self, freq_comb_master, wavecal):
-        """Improve the wavelength calibration with a laser frequency comb (or similar)
+        """
+        Improve the wavelength calibration with a laser frequency comb (or similar)
 
         Parameters
         ----------
@@ -99,7 +100,7 @@ class LaserFrequencyCombFinalize(Step):
         """
         try:
             data = np.load(self.savefile, allow_pickle=True)
-            logger.info("Frequency comb wavecal file: %s", self.savefile)
+            logger.info(f"Frequency comb wavecal file: '{self.savefile}'")
         except FileNotFoundError:
             logger.warning("No data for Laser Frequency Comb found, using regular wavelength calibration instead")
             wave, coef, linelist = wavecal

@@ -14,8 +14,8 @@ class ContinuumNormalization(Step):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["science", "freq_comb", "norm_flat"]
-        self._loadDependsOn += ["norm_flat", "science"]
+        self._depends_on += ["science", "freq_comb", "norm_flat"]
+        self._load_depends_on += ["norm_flat", "science"]
 
     @property
     def savefile(self):

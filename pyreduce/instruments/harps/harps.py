@@ -11,7 +11,7 @@ from pathlib import Path
 from astropy.io import fits
 from typing import overload
 
-from pyreduce.instruments.common import Instrument
+from pyreduce.instruments.instrument import Instrument
 from pyreduce.instruments.filters import Filter, InstrumentFilter, NightFilter, ObjectFilter
 
 logger = logging.getLogger(__name__)

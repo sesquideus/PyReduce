@@ -8,7 +8,7 @@ import os.path
 
 import pyreduce
 from pyreduce.configuration import get_configuration_for_instrument
-from pyreduce.instruments.common import create_custom_instrument
+from pyreduce.instruments.instrument import create_custom_instrument
 from pyreduce.reducer import Reducer
 from pyreduce.util import start_logging
 

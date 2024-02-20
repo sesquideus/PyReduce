@@ -9,7 +9,7 @@ import os.path
 
 from pathlib import Path
 
-from pyreduce.instruments.common import Instrument, HeaderGetter, observation_date_to_night
+from pyreduce.instruments.instrument import Instrument, HeaderGetter, observation_date_to_night
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,8 @@
 import abc
 import datetime
 
+from pathlib import Path
+
 from pyreduce.instruments import Instrument
 
 
@@ -15,11 +17,11 @@ class Step(metaclass=abc.ABCMeta):
                  output_dir_template: str,
                  order_range,
                  **config):
-        self._dependsOn: list = []
-        self._loadDependsOn: list = []
+        self._depends_on: list[str] = []
+        self._load_depends_on: list[str] = []
 
         # Name of the instrument
-        self.instrument: Instrument = instrument
+        self.instrument: Instrument = instrument  # TODO Switch to Instrument or load?
         # Name of the instrument mode
         self.mode: str = mode
         # Name of the observation target
@@ -73,28 +75,30 @@ class Step(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @property
-    def dependsOn(self):
+    def depends_on(self):
         """list(str): Steps that are required before running this step"""
-        return list(set(self._dependsOn))
+        return list(set(self._depends_on))
 
     @property
-    def loadDependsOn(self):
-        """list(str): Steps that are required before loading data from this step"""
-        return list(set(self._loadDependsOn))
+    def load_depends_on(self) -> list[str]:
+        """ list(str): Steps that are required before loading data from this step"""
+        return list(set(self._load_depends_on))
 
     @property
-    def output_dir(self):
-        """str: output directory, may contain tags {instrument}, {night}, {target}, {mode}"""
-        return self._output_dir_template.format(
-            instrument=self.instrument.name.upper(),
-            target=self.target,
-            night=self.night.isoformat(),
-            mode=self.mode,
+    def output_dir(self) -> Path:
+        """ Fill the output dir template and return a Path where outputs will be stored """
+        return Path(
+            self._output_dir_template.format(
+                instrument=self.instrument.name.upper(),
+                target=self.target,
+                night=self.night.isoformat(),
+                mode=self.mode,
+            )
         )
 
     @property
-    def prefix(self):
-        """str: temporary file prefix"""
+    def prefix(self) -> str:
+        """ Temporary file prefix """
         name = self.instrument.name.lower()
         if self.mode is not None and self.mode != "":
             mode = self.mode.lower()

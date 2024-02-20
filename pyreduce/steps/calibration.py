@@ -8,7 +8,7 @@ from pyreduce.combine_frames import combine_calibrate
 class CalibrationStep(Step, metaclass=abc.ABCMeta):
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["mask", "bias"]
+        self._depends_on += ["mask", "bias"]
 
         # {'number_of_files', 'exposure_time', 'mean', 'median', 'none'}:
         # how to adjust for diferences between the bias and flat field exposure times

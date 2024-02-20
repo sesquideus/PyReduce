@@ -1,7 +1,11 @@
-from .common import Instrument, InstrumentWithModes
+from .instrument import Instrument, InstrumentWithModes
 
-from pyreduce.instruments.andes.andes import ANDES
-from pyreduce.instruments.crires_plus.crires_plus import CRIRES_PLUS
-from pyreduce.instruments.uves.uves import UVES
+from .andes.andes import ANDES
+from .crires_plus.crires_plus import CRIRES_PLUS
+from .uves.uves import UVES
+from .metis.metis import METIS
 
-__all__ = ['ANDES', 'CRIRES_PLUS', 'UVES']
+__all__ = ['Instrument', 'InstrumentWithModes',
+           'ANDES', 'CRIRES_PLUS', 'UVES', 'METIS',
+           # TODO Add the rest too
+           ]

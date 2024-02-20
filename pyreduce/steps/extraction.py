@@ -7,7 +7,7 @@ from .step import Step
 class ExtractionStep(Step, metaclass=abc.ABCMeta):
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += [
+        self._depends_on += [
             "orders",
         ]
 

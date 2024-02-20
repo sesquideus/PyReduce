@@ -193,7 +193,7 @@ class Instrument(metaclass=abc.ABCMeta):
         return info
 
     def load_fits(self,
-                  fname: str,
+                  fname: Path,
                   mode: str,
                   *,
                   extension: int = None,
@@ -234,18 +234,17 @@ class Instrument(metaclass=abc.ABCMeta):
 
         ONLY the header is returned if header_only is True
         """
-
-        mode = mode.upper()
+        logger.debug(f"Loading a FITS file '{fname}'")
 
         hdu = fits.open(fname)
         h_prime = hdu[0].header
         if extension is None:
-            extension = self.get_extension(h_prime, mode)
+            extension = self.get_extension(h_prime, mode.upper())
 
         header = hdu[extension].header
         if extension != 0:
             header.extend(h_prime, strip=False)
-        header = self.add_header_info(header, mode)
+        header = self.add_header_info(header, mode.upper())
         header["e_input"] = (os.path.basename(fname), "Original input filename")
 
         if header_only:
@@ -263,7 +262,8 @@ class Instrument(metaclass=abc.ABCMeta):
         return data, header
 
     def add_header_info(self, header: fits.Header, mode: str, **kwargs) -> fits.Header | dict[str, Any]:
-        """read data from header and add it as REDUCE keyword back to the header
+        """
+        Read data from header and add it as REDUCE keyword back to the header
 
         Parameters
         ----------
@@ -281,7 +281,7 @@ class Instrument(metaclass=abc.ABCMeta):
         info = self.load_info()
         get = HeaderGetter(header, info, mode)
 
-        header["e_instrument"] = get("instrument", self.__class__.__name__)
+        header["e_instrument"] = get("instrument", self.name.upper())
         header["e_telescope"] = get("telescope", "")
         header["e_exptime"] = get("exposure_time", 0)
 

@@ -9,7 +9,7 @@ import os.path
 from astropy.io import fits
 from pathlib import Path
 
-from pyreduce.instruments.common import Instrument
+from pyreduce.instruments.instrument import Instrument
 
 logger = logging.getLogger(__name__)
 

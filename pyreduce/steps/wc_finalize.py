@@ -13,7 +13,7 @@ class WavelengthCalibrationFinalize(Step):
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
-        self._dependsOn += ["wavecal_master", "wavecal_init"]
+        self._depends_on += ["wavecal_master", "wavecal_init"]
 
         # Polynomial degree of the wavelength calibration in order, column direction
         self.degree: tuple[int, int] = config["degree"]

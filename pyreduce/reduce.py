@@ -31,7 +31,7 @@ from typing import Any
 # PyReduce subpackages
 from . import __version__, instruments, util
 from .configuration import load_config
-from .instruments.common import Instrument
+from .instruments.instrument import Instrument
 from .instruments.instrument_info import load_instrument
 from .reducer import Reducer
 

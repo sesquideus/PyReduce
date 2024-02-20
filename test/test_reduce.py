@@ -58,8 +58,8 @@ def test_load_all(instrument, target, night, mode, input_dir, output_dir, order_
 def test_step_abstract(step_args):
     step = reduce.Step(*step_args, **{"plot": False})
 
-    assert isinstance(step.dependsOn, list)
-    assert isinstance(step.loadDependsOn, list)
+    assert isinstance(step.depends_on, list)
+    assert isinstance(step.load_depends_on, list)
     assert isinstance(step.prefix, str)
     assert isinstance(step.output_dir_template, str)
 
