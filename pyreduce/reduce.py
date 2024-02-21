@@ -54,7 +54,7 @@ def main(instrument_name: str,
          input_dir_template: str = None,
          output_dir_template: str = None,
          configuration: dict[str, Any] = None,
-         order_range=None,
+         order_range: tuple[int, int] = None,
          allow_calibration_only: bool = False,
          skip_existing: bool = False,
          debug: bool = False):  # until converted to a class
@@ -98,7 +98,6 @@ def main(instrument_name: str,
         Show debugging info and set logger level accordingly
     """
 
-    logger.setLevel(logging.DEBUG if debug else logging.INFO)
     logger.debug(f"Running reduction for target {c.name(target)} on nights {c.name(night)}")
 
     # If there is a single target, create a length-1 list from it
@@ -112,6 +111,8 @@ def main(instrument_name: str,
         nights = []
     elif isinstance(night, datetime.date):
         nights = [night]
+    else:
+        raise TypeError(f"Parameter 'night' must be an instance of datetime.date")
 
     is_none = {
         "modes": modes is None,
@@ -127,9 +128,7 @@ def main(instrument_name: str,
     # config: paramters for the current reduction
     # info: constant, instrument specific parameters
 
-    logger.debug(f"Current configuration is:")
-    if debug:
-        pprint.pprint(configuration)
+    logger.trace(f"Current configuration is:\n{pprint.pformat(configuration)}")
 
     instrument: Instrument = instruments.instrument_info.load_instrument(instrument_name)
 
@@ -155,6 +154,11 @@ def main(instrument_name: str,
     if np.isscalar(modes):
         modes = [modes]
 
+    logger.debug(f"Running over a Cartesian product of "
+                 f"targets {c.print_list(targets, c.name)} × "
+                 f"nights {c.print_list(nights, c.name)} × "
+                 f"modes {c.print_list(modes, c.name)}")
+
     for t, n, m in itertools.product(targets, nights, modes):
         assert isinstance(n, datetime.date)
 
@@ -173,7 +177,7 @@ def main(instrument_name: str,
             allow_calibration_only=allow_calibration_only,
         )
         if len(files) == 0:
-            logger.warning(f"No files found for instrument {c.name(instrument)}, target: {c.name(t)}, "
+            logger.warning(f"No files found for instrument {c.name(instrument.name)}, target: {c.name(t)}, "
                            f"night: {c.name(n)}, mode: {m} in folder {c.path(input_dir_template)}")
         else:
             for k, f in files:
@@ -181,7 +185,7 @@ def main(instrument_name: str,
                 for key, value in k.items():
                     logger.info("%s: %s", key, value)
 
-                logger.debug(f"Files:\n{pprint.pformat(f)}")
+                logger.debug(f"Dataset files after classification:\n{pprint.pformat(f)}")
 
                 reducer = Reducer(
                     f,

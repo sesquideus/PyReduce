@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import tempfile
 from os.path import dirname, join
@@ -8,10 +7,8 @@ from shutil import rmtree
 import matplotlib as mpl
 import pytest
 
-mpl.use("agg")
-
 from pyreduce import configuration, datasets, instruments
-from pyreduce.reduce import (
+from pyreduce.steps import (
     BackgroundScatter,
     Bias,
     Flat,
@@ -24,6 +21,8 @@ from pyreduce.reduce import (
     WavelengthCalibrationInitialize,
     WavelengthCalibrationMaster,
 )
+
+mpl.use("Agg")
 
 
 @pytest.fixture(scope="function")
@@ -190,13 +189,13 @@ def data(dataset, settings, target, night, mode):
     instrument, target = dataset
     folder = dirname(__file__)
     if instrument == "UVES":
-        folder = datasets.UVES(folder)
+        folder = datasets.DatasetUVES(folder)
     elif instrument == "XSHOOTER":
-        folder = datasets.XSHOOTER(folder)
+        folder = datasets.DatasetXSHOOTER(folder)
     elif instrument == "JWST_NIRISS":
-        folder = datasets.JWST_NIRISS(folder)
+        folder = datasets.DatasetJWST_NIRISS(folder)
     elif instrument == "NIRSPEC":
-        folder = datasets.KECK_NIRSPEC(folder)
+        folder = datasets.DatasetKECK_NIRSPEC(folder)
     else:
         raise ValueError("Dataset not recognised")
     yield folder
@@ -256,7 +255,7 @@ def _odir(data, settings, instrument, target, night, mode):
 
 
 @pytest.fixture
-def output_dir(data, settings, instrument, target, night, mode):
+def output_dir(data: str, settings: dict[str, object], instrument: str, target: str, night: str, mode: str):
     """Output data directory
     Also creates that directory if necessary
 

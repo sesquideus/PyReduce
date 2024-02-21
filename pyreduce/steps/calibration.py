@@ -1,8 +1,10 @@
 import abc
+import numpy as np
 
-from .step import Step
+from pathlib import Path
 
 from pyreduce.combine_frames import combine_calibrate
+from .step import Step
 
 
 class CalibrationStep(Step, metaclass=abc.ABCMeta):
@@ -16,7 +18,7 @@ class CalibrationStep(Step, metaclass=abc.ABCMeta):
         # {'divide', 'none'}: how to apply the normalized flat field
         self.norm_scaling = config["norm_scaling"]
 
-    def calibrate(self, files, mask, bias=None, norm_flat=None):
+    def calibrate(self, files: list[Path], mask: np.ma.masked_array, bias=None, norm_flat=None):
         bias, bhead = bias if bias is not None else (None, None)
         norm, blaze = norm_flat if norm_flat is not None else (None, None)
         orig, thead = combine_calibrate(

@@ -55,7 +55,6 @@ class ContinuumNormalization(Step):
         logger.info("Continuum normalization")
         conts = [None for _ in specs]
         for j, (spec, sigma) in enumerate(zip(specs, sigmas)):
-            logger.info("Splicing orders")
             specs[j], wave, blaze, sigmas[j] = splice_orders(
                 spec,
                 wave,

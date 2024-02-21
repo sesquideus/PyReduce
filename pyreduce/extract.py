@@ -504,7 +504,7 @@ def make_bins(swath_width, xlow, xhigh, ycen):
     return nbin, bins_start, bins_end
 
 
-def calc_telluric_correction(telluric, img):  # pragma: no cover
+def calc_telluric_correction(telluric: int, img: np.ndarray[float]):  # pragma: no cover
     """Calculate telluric correction
 
     If set to specific integer larger than 1 is used as the
@@ -526,7 +526,7 @@ def calc_telluric_correction(telluric, img):  # pragma: no cover
     """
     width, height = img.shape
 
-    tel_lim = telluric if telluric > 5 and telluric < height / 2 else min(5, height / 3)
+    tel_lim = telluric if 5 < telluric < height / 2 else min(5, height / 3)
     tel = np.sum(img, axis=0)
     itel = np.arange(height)
     itel = itel[np.abs(itel - height / 2) >= tel_lim]
@@ -703,7 +703,7 @@ def extract_spectrum(
         desc="Swath",
     ) as t:
         for ihalf, (ibeg, iend) in t:
-            logger.debug("Extracting Swath %i, Columns: %i - %i", ihalf, ibeg, iend)
+            logger.trace(f"Extracting swath {ihalf:3d}, columns: {ibeg:5} - {iend:5}")
 
             # Cut out swath from image
             index = make_index(ycen_int - ylow, ycen_int + yhigh, ibeg, iend)

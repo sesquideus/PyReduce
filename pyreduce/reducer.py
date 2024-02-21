@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class Reducer:
     step_order: dict[str, int] = {
-        # "mask": 5,  TODO: This was not here but I do not understand why, maybe Thomas can explain
+        "mask": 5,  # TODO: This was not here but I do not understand why, maybe Thomas can explain
         "bias": 10,
         "flat": 20,
         "orders": 30,
@@ -59,7 +59,7 @@ class Reducer:
     }
 
     def __init__(self,
-                 files: dict[str, str],
+                 classified_files: dict[str, Path],
                  output_dir_template: str,
                  target: str,
                  instrument: Instrument,
@@ -73,8 +73,8 @@ class Reducer:
 
         Parameters
         ----------
-        files: dict{str:str}
-            Data files for each step
+        classified_files: dict[str, Path]
+            data files for each step, classified by use case
         output_dir_template : str
             directory to place output files in, should contain placeholders
         target : str
@@ -92,8 +92,7 @@ class Reducer:
         skip_existing : bool
             Whether to skip reductions with existing output
         """
-        # dict(str:str): Filenames sorted by usecase
-        self.files = files
+        self.files = classified_files
         self.output_dir = output_dir_template.format(instrument=str(instrument),
                                                      target=target,
                                                      night=night,
@@ -102,7 +101,7 @@ class Reducer:
         if isinstance(instrument, str):
             instrument = load_instrument(instrument)
 
-        self.data = {"files": files, "config": config}
+        self.data = {"files": classified_files, "config": config}
         self.inputs = (instrument, mode, target, night, output_dir_template, order_range)
         self.config = config
         self.skip_existing = skip_existing

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from os.path import dirname, join
-
 import numpy as np
 import pytest
 from astropy.io import fits
@@ -13,6 +10,7 @@ def test_bias(instrument, mode, files, mask):
     if len(files["bias"]) == 0:
         pytest.skip(f"No bias files for instrument {instrument}")
 
+    instrument = instruments.instrument_info.load_instrument(instrument)
     bias, bhead = combine_bias(files["bias"], instrument, mode, window=50, mask=mask)
 
     assert isinstance(bias, np.ma.masked_array)

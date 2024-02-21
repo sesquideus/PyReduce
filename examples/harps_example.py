@@ -23,7 +23,7 @@ from workflow import Workflow
 
 
 class WorkflowExampleHARPS(Workflow):
-    instrument: str = "HARPS"
+    instrument_name: str = "HARPS"
     dataset_class: ClassVar = DatasetHARPS
     target: str = "HD109200"
     night: datetime.date = None
@@ -46,3 +46,6 @@ class WorkflowExampleHARPS(Workflow):
     input_dir_template: str = "raw"
     output_dir_template: str = "reduced_{mode}"
     order_range: tuple[int, int] = (0, 25)
+
+
+WorkflowExampleHARPS().process()

@@ -15,6 +15,7 @@ import jsonschema
 from pathlib import Path
 
 from pyreduce.util import ConfigurationError
+from . import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ else:
 
 
 def get_configuration_for_instrument(instrument_name: str, **kwargs):
-    logger.debug(f"Getting configuration for instrument '{instrument_name}'")
+    logger.trace(f"Getting configuration for instrument {c.name(instrument_name)}")
     if instrument_name in ["pyreduce", None]:
         fname = Path(__file__).parent / "settings" / "settings_pyreduce.json"
     else:
@@ -45,7 +46,7 @@ def get_configuration_for_instrument(instrument_name: str, **kwargs):
 
 
 def load_config(configuration: None | str | list | dict | Path, instrument_name: str, j: int = 0):
-    logger.debug(f"Loading configuration for instrument '{instrument_name}'")
+    logger.debug(f"Loading configuration for instrument {c.name(instrument_name)}")
 
     # First convert to proper filename
     if configuration is None:
@@ -86,17 +87,16 @@ def load_config(configuration: None | str | list | dict | Path, instrument_name:
                 config = json.load(f)
 
     # Combine instrument specific settings, with default values
-    settings = read_config()
+    settings = read_instrument_config()
     settings = update(settings, config)
 
     # If it doesn't raise an Exception everything is as expected
     validate_config(settings)
-    logger.debug("Configuration successfully validated")
 
     return settings
 
 
-def update(dict1, dict2, check=True, name="dict1"):
+def update(dict1: dict, dict2: dict, check: bool = True, name: str = "dict1") -> dict:
     """
     Update entries in dict1 with entries of dict2 recursively,
     i.e. if the dict contains a dict value, values inside the dict will
@@ -126,6 +126,7 @@ def update(dict1, dict2, check=True, name="dict1"):
     # Instrument is a 'special' section as it may include any number of values
     # In that case we don't want to raise an error for new keys
     exclude = ["instrument"]
+
     for key, value in dict2.items():
         if check and key not in dict1.keys():
             logger.warning(f"{key} is not contained in {name}")
@@ -136,7 +137,7 @@ def update(dict1, dict2, check=True, name="dict1"):
     return dict1
 
 
-def read_config(fname="settings_pyreduce.json"):
+def read_instrument_config(fname="settings_pyreduce.json"):
     """Read the configuration file from disk
 
     If no filename is given it will load the default configuration.
@@ -186,8 +187,9 @@ def validate_config(config) -> None:
             schema = json.load(f)
         try:
             jsonschema.validate(schema=schema, instance=config)
+            logger.debug(f"Configuration was successfully validated against schema {c.path(fname)}.")
         except jsonschema.ValidationError as exc:
-            logger.error("Configuration failed validation check: %s", exc.message)
-            raise ConfigurationError from exc
+            logger.critical(f"Configuration failed validation check: {exc.message}")
+            raise ConfigurationError("Could not validate instrument configuration") from exc
     else:
-        logger.warning("jsonschema is not imported, cannot validate configuration")
+        logger.warning("Module `jsonschema` is not imported, configuration validation skipped")

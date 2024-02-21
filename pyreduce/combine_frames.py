@@ -7,21 +7,19 @@ Used to create master bias and master flat
 
 import datetime
 import logging
-import os
 import pprint
 
 import astropy.io.fits as fits
 import matplotlib.pyplot as plt
 import numpy as np
 
-from dateutil import parser
 from pathlib import Path
 from scipy.ndimage.filters import median_filter
 from tqdm import tqdm
 
 from .clipnflip import clipnflip
 from .instruments.instrument_info import load_instrument
-from .util import gaussbroad, gaussfit, remove_bias
+from .util import gaussbroad, gaussfit, remove_bias, ConfigurationError
 from .instruments import Instrument
 from . import colour as c
 
@@ -48,7 +46,7 @@ def running_median(arr: np.ndarray, size: int) -> np.ndarray:
     return ret[:, m:-m]
 
 
-def running_sum(arr, size):
+def running_sum(arr: np.ndarray, size: int) -> np.ndarray:
     """Calculate the running sum over the 2D sequence
 
     Parameters
@@ -68,7 +66,7 @@ def running_sum(arr, size):
     return ret[:, size - 1:]
 
 
-def calculate_probability(buffer: np.ndarray, window: int, method: str = "sum"):
+def calculate_probability(buffer: np.ndarray, window: int, method: str = "sum") -> np.ndarray:
     """
     Construct a probability function based on buffer data.
 
@@ -138,9 +136,7 @@ def fix_bad_pixels(probability: np.ndarray[float],
     ratio = np.zeros_like(probability)
     np.divide(buffer, probability, where=probability > 0, out=ratio)
     # ratio = np.where(probability > 0, buffer / probability, 0.)
-    amplitude = (
-                        np.sum(ratio, axis=0) - np.min(ratio, axis=0) - np.max(ratio, axis=0)
-                ) / (buffer.shape[0] - 2)
+    amplitude = (np.sum(ratio, axis=0) - np.min(ratio, axis=0) - np.max(ratio, axis=0)) / (buffer.shape[0] - 2)
 
     fitted_signal = np.where(probability > 0, amplitude[None, :] * probability, 0)
     predicted_noise = np.zeros_like(fitted_signal)
@@ -157,14 +153,14 @@ def fix_bad_pixels(probability: np.ndarray[float],
     return corrected_signal, nbad
 
 
-def combine_frames(files: list[str],
+def combine_frames(files: list[Path],
                    instrument: Instrument,
                    mode: str,
                    extension: int = None,
                    threshold: float = 3.5,
                    window: int = 50,
                    dtype: np.dtype = np.float32,
-                   **kwargs):
+                   **kwargs) -> (np.ndarray, fits.Header):
     """
     Subroutine to correct cosmic rays blemishes, while adding otherwise
     similar images.
@@ -251,8 +247,7 @@ def combine_frames(files: list[str],
         combined image data, header
     """
 
-    assert isinstance(files, list), \
-        f"An array of files is expected as an input, got {type(files)}"
+    assert isinstance(files, list), f"A list of files is expected as an input, got {type(files)}"
     assert isinstance(instrument, Instrument), "All instruments must be Instrument instances at this stage"
 
     logger.debug(f"Combining frames for instrument {instrument.name} in mode {mode} for files:")
@@ -265,7 +260,7 @@ def combine_frames(files: list[str],
 
     # Only one image
     if len(files) == 0:
-        raise ValueError("No files given for combine frames")
+        raise ValueError(f"No files given for {c.name('combining frames')}")
     elif len(files) == 1:
         result, head = instrument.load_fits(files[0], mode, extension=extension, dtype=dtype, **kwargs)
         return result, head
@@ -381,7 +376,7 @@ def combine_frames(files: list[str],
             # for each row
             for row in tqdm(range(y_bottom, y_top), desc="Rows"):
                 if row % DEBUG_NROWS == 0:
-                    logger.debug(f"{c.num(f'{row:5d}')} rows processed - {c.num(f'{n_fixed:6d}')} pixels fixed so far")
+                    logger.trace(f"{c.num(f'{row:5d}')} rows processed - {c.num(f'{n_fixed:6d}')} pixels fixed so far")
 
                 # load current row
                 idx = index(row, x_left, x_right)
@@ -450,11 +445,11 @@ def combine_frames(files: list[str],
     return result, head
 
 
-def combine_calibrate(files: list[str],
+def combine_calibrate(files: list[Path],
                       instrument: Instrument,
                       mode: str,
                       mask: np.ndarray | None = None,
-                      bias: str = None,
+                      bias: np.ndarray | None = None,
                       bhead=None,
                       norm=None,
                       *,
@@ -478,6 +473,7 @@ def combine_calibrate(files: list[str],
     mask : array
         2D Bad Pixel Mask to apply to the master image
     bias : tuple(bias, bhead), optional
+        # ToDo: this is probably in fact just a np.ndarray
         bias correction to apply to the combiend image, if bias has 3 dimensions
         it is used as polynomial coefficients scaling with the exposure time, by default None
     bias_scaling : str, optional
@@ -502,7 +498,8 @@ def combine_calibrate(files: list[str],
     ValueError
         Unrecognised bias_scaling option
     """
-    logger.debug(f"Running {combine_calibrate.__qualname__} for instrument {instrument.name} on data {files}")
+    logger.debug(f"Running {c.name(combine_calibrate.__qualname__)} for instrument {c.name(instrument.name)} "
+                 f"on data {files}")
 
     # Combine the images and try to remove bad pixels
     orig, thead = combine_frames(files, instrument, mode, mask=mask, **kwargs)
@@ -512,9 +509,7 @@ def combine_calibrate(files: list[str],
         if bias.ndim == 2:
             degree = 0
             if bhead["exptime"] == 0 and bias_scaling == "exposure_time":
-                logger.warning(
-                    "No exposure time set in bias, using number of files instead"
-                )
+                logger.warning("No exposure time set in bias, using number of files instead")
                 bias_scaling = "number_of_files"
             match bias_scaling:
                 case "exposure_time":
@@ -610,6 +605,8 @@ def combine_polynomial(files: list[Path],
     bhead : Header
         combined FITS header of the coefficients
     """
+    assert isinstance(instrument, Instrument), "The instrument must be an Instrument object"
+
     hdus = [instrument.load_fits(f, mode) for f in tqdm(files)]
     data = np.array([h[0] for h in hdus])
     exptimes = np.array([h[1]["EXPTIME"] for h in hdus])
@@ -668,7 +665,9 @@ def combine_bias(files: list[Path],
     files : list(str)
         bias files to combine
     instrument : str
-        instrument mode for modinfo
+        name of the instrument
+    mode: str
+        mode for modinfo
     extension : {int, str}, optional
         fits extension to use (default: 1)
     xr : 2-tuple(int), optional
@@ -682,10 +681,11 @@ def combine_bias(files: list[Path],
     bias, bhead
         bias image and header
     """
+    logger.debug(f"Combining bias from {len(files)} files")
 
     n = len(files)
     if n == 0:
-        raise FileNotFoundError("Cannot combine bias: no bias file(s) given")
+        raise ConfigurationError("Cannot combine bias: no bias file(s) given")
     elif n == 1:
         # if there is just one element compare it with itself, not really useful, but it works
         list1 = list2 = files
@@ -788,7 +788,7 @@ def combine_bias(files: list[Path],
         plt.imshow(bias, vmin=bot, vmax=top, origin="lower")
         plt.show()
 
-    head["obslist"] = " ".join([os.path.basename(f) for f in files])
+    head["obslist"] = " ".join([f.name for f in files])
     head["nimages"] = (n, "number of images summed")
     head["npixfix"] = (nbad, "pixels corrected for cosmic rays")
     head["bgnoise"] = (biasnoise, "noise in combined image, electrons")

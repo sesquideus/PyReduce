@@ -9,6 +9,7 @@ from spectres import spectres
 from tqdm import tqdm
 
 from .. import echelle
+from .. import colour
 
 logger = logging.getLogger(__name__)
 
@@ -113,4 +114,4 @@ def combine(files, output, plot=None):
     e.header["barycorr"] = 0.0
     e.save(output)
 
-    logger.info("Created combined file: %s", output)
+    logger.info(f"Created combined file {c.path(output)}")

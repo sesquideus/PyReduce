@@ -1,52 +1,35 @@
-# -*- coding: utf-8 -*-
 """
 Simple usage example for PyReduce
-Loads a sample UVES dataset, and runs the full extraction
+Loads a sample JWST NIRISS dataset, and runs the full extraction
 """
 
-import os.path
+import datetime
+import typing
 
-import pyreduce
-from pyreduce import datasets
+from pathlib import Path
 
-# define parameters
-instrument = "JWST_NIRISS"
-target = None
-night = None
-mode = "GR700XD"
-steps = (
-    "bias",
-    "flat",
-    "orders",
-    "norm_flat",
-    # "wavecal",
-    # "curvature",
-    "science",
-    "continuum",
-    "finalize",
-)
+from workflow import Workflow
 
-# some basic settings
-# Expected Folder Structure: base_dir/datasets/HD132205/*.fits.gz
-# Feel free to change this to your own preference, values in curly brackets will be replaced with the actual values {}
 
-# load dataset (and save the location)
-base_dir = datasets.JWST_NIRISS(os.path.expanduser("~")+"/PyReduce/DATA")
-input_dir = "awesimsoss"
-output_dir = "reduced"
+class WorkflowJWST_NIRISS(Workflow):
+    instrument_name: str = "JWST_NIRISS"
+    night: datetime.date = None
+    mode: str = "GR700XD"
+    steps: list[str] = [
+        "bias",
+        "flat",
+        "orders",
+        "norm_flat",
+        # "wavecal",
+        # "curvature",
+        "science",
+        "continuum",
+        "finalize"
+    ]
+    local_dir: Path = Path("~/astar/pyreduce/data/").expanduser()
+    base_dir_template: str = None
+    input_dir_template: str = "awesimsoss/"
+    output_dir_template: str = "reduced/"
 
-# Path to the configuration parameters, that are to be used for this reduction
-config = pyreduce.configuration.get_configuration_for_instrument(instrument, plot=False)
 
-pyreduce.reduce.main(
-    instrument,
-    target,
-    night,
-    mode,
-    steps,
-    base_dir_template=base_dir,
-    input_dir_template=input_dir,
-    output_dir_template=output_dir,
-    configuration=config,
-    # order_range=(0, 25),
-)
+WorkflowJWST_NIRISS().process()

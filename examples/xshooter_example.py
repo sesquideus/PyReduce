@@ -11,8 +11,7 @@ from workflow import Workflow
 
 
 class WorkflowXShooter(Workflow):
-    instrument: str = "XSHOOTER"
-    dataset_class: typing.ClassVar = DatasetXSHOOTER
+    instrument_name: str = "XSHOOTER"
     target: str = "UX-Ori"
     night: datetime.date = None
     mode: str = "NIR"

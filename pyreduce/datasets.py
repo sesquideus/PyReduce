@@ -7,9 +7,11 @@ if data needs to be downloaded
 import abc
 import logging
 import tarfile
+import wget
+
 from pathlib import Path
 
-import wget
+from pyreduce import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -17,12 +19,13 @@ logger = logging.getLogger(__name__)
 class Dataset(metaclass=abc.ABCMeta):
     server_url: str = r"http://sme.astro.uu.se/pyreduce/"
     instrument_name: str = None
-    _local_dir_template: str = None
+    target: str = None
+    _local_dir: Path = None
     _data_dir: Path = None
 
     @property
-    def local_dir_template(self) -> str:
-        return self._local_dir_template
+    def local_dir(self) -> Path:
+        return self._local_dir
 
     @property
     def data_dir(self) -> Path:
@@ -32,7 +35,11 @@ class Dataset(metaclass=abc.ABCMeta):
     def load_data_from_server(filename: str, directory: Path) -> None:
         wget.download(f"{Dataset.server_url}{filename}", out=str(directory / filename))
 
-    def __init__(self, *, local_dir_template: str | None = None):
+    def __init__(self,
+                 instrument_name: str = None,
+                 target: str = None,
+                 *,
+                 local_dir: Path | None = None):
         """
         Load a dataset
 
@@ -45,22 +52,31 @@ class Dataset(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        local_dir_template : str, optional
+        local_dir : str, optional
             directory to save data at (default: "./")
         """
         # If no local dir is provided, use the parent of current file
-        self._local_dir_template = local_dir_template if local_dir_template is not None else Path(__file__).parent.name
+        self.instrument_name = instrument_name
+        self.target = target
+        if local_dir is None:
+            self._local_dir = Path(__file__).parent
+        else:
+            self._local_dir = local_dir
+
+        logger.debug(f"Created a dataset for instrument {c.name(self.instrument_name)} "
+                     f"and target {c.name(self.target)} at {c.path(str(self.local_dir))}")
 
         # Load data if necessary
         fname = f"{self.instrument_name}.tar.gz"
-        self._data_dir = Path(self._local_dir_template) / "datasets" / self.instrument_name
+        self._data_dir = Path(self._local_dir) / "datasets" / self.instrument_name
         filename = self.data_dir / fname
 
         self._data_dir.mkdir(parents=True, exist_ok=True)
         if filename.is_file():
-            logger.info(f"Using existing dataset {self.instrument_name} from {filename}")
+            logger.info(f"Using existing dataset {self.instrument_name} from {c.path(filename)}")
         else:
-            logger.info(f"Dataset {self.instrument_name} does not exist at {filename}, downloading to {self.data_dir}")
+            logger.info(f"Dataset {c.name(self.instrument_name)} does not exist at {c.path(filename)}, "
+                        f"downloading to {c.path(self.data_dir)}")
             self.load_data_from_server(fname, self.data_dir)
 
         # Extract the downloaded .tar.gz file
@@ -68,11 +84,10 @@ class Dataset(metaclass=abc.ABCMeta):
             raw_dir = self.data_dir / "raw"
             names = [f for f in file if not (raw_dir / f.name).is_file()]
             if len(names) != 0:
-                logger.info(f"Extracting data from tarball {file.name}")
+                logger.info(f"Extracting data from tarball {c.path(file.name)}")
                 file.extractall(path=raw_dir, members=names)
 
         #def download_and_extract(root_url: str = r"http://sme.astro.uu.se/pyreduce/"):
-
 
 
 class DatasetUVES(Dataset):  # pragma: no cover

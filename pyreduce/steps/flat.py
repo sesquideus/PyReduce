@@ -5,6 +5,7 @@ from astropy.io import fits
 from os.path import join
 
 from .calibration import CalibrationStep
+from pyreduce import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,9 @@ class Flat(CalibrationStep):
         fhead : FITS header
             Master flat FITS header
         """
-        logger.info("Flat files: %s", files)
+        logger.info("Flat files:")
+        for file in files:
+            logger.info(f"\t{c.path(file)}")
         # This is just the calibration of images
         flat, fhead = self.calibrate(files, mask, bias, None)
         # And then save it

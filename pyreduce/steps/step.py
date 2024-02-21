@@ -7,7 +7,7 @@ from pyreduce.instruments import Instrument
 
 
 class Step(metaclass=abc.ABCMeta):
-    """ Abstract parent class for all steps. """
+    """ Abstract parent class for all steps """
 
     def __init__(self,
                  instrument: str,
@@ -73,6 +73,10 @@ class Step(metaclass=abc.ABCMeta):
             Needs to be implemented for each step
         """
         raise NotImplementedError
+
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__
 
     @property
     def depends_on(self):

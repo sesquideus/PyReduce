@@ -46,7 +46,7 @@ class Bias(Step):
         bhead : FITS header
             header of the master bias
         """
-        logger.info(f"Running {c.act(self.__class__.__name__)} step with {c.num(len(files))} files")
+        logger.info(f"Running {c.act(self.name)} step with {c.num(len(files))} files")
         for file in files:
             logger.debug(f"\t{file}")
 

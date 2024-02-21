@@ -59,7 +59,7 @@ def in_ipynb():
 def log_version():
     """For Debug purposes"""
     logger.debug("----------------------")
-    logger.debug("PyReduce version: %s", __version__)
+    logger.debug(f"PyReduce version: {__version__}")
 
 
 def start_logging(log_file: str = "log.log"):

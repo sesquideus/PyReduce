@@ -53,12 +53,12 @@ def test_update():
 
 def test_read_config():
     # Reads the default values
-    res = conf.read_config()
+    res = conf.read_instrument_config()
 
     assert isinstance(res, dict)
 
     with pytest.raises(FileNotFoundError):
-        conf.read_config(fname="blablub.json")
+        conf.read_instrument_config(fname="blablub.json")
 
 
 def test_validation():

@@ -18,7 +18,13 @@ logger = logging.getLogger(__name__)
 # np.seterr("raise")
 
 
-def splice_orders(spec, wave, cont, sigm, scaling=True, plot=False, plot_title=None):
+def splice_orders(spec: np.ndarray[float],
+                  wave: np.ndarray[float],
+                  cont: np.ndarray[float],
+                  sigm: np.ndarray[float],
+                  scaling: bool = True,
+                  plot: bool = False,
+                  plot_title: str = None):
     """
     Splice orders together so that they form a continous spectrum
     This is achieved by linearly combining the overlaping regions
@@ -48,6 +54,7 @@ def splice_orders(spec, wave, cont, sigm, scaling=True, plot=False, plot_title=N
     spec, wave, cont, sigm : array[nord, ncol]
         spliced spectrum
     """
+    logger.info("Splicing orders")
     nord, _ = spec.shape  # Number of sp. orders, Order length in pixels
 
     if cont is None:

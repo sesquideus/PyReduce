@@ -56,3 +56,5 @@ def script(what):
     return colour(what, Fore.LIGHTGREEN_EX)
 
 
+def print_list(what, fun=lambda x: x):
+    return f"[{', '.join(list(map(fun, what)))}]"

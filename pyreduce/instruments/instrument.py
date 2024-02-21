@@ -9,6 +9,7 @@ import itertools
 import json
 import logging
 import os.path
+import pprint
 import typing
 
 import numpy as np
@@ -153,9 +154,13 @@ class Instrument(metaclass=abc.ABCMeta):
     def __str__(self):
         return self.name
 
-    def get(self, key, header, mode, alt=None):
+    def get(self,
+            key: str,
+            header: fits.Header,
+            mode: str,
+            default: Any = None):
         get = HeaderGetter(header, self.info, mode)
-        return get(key, alt=alt)
+        return get(key, default=default)
 
     def get_extension(self, header, mode):
         mode = mode.upper()
@@ -337,7 +342,7 @@ class Instrument(metaclass=abc.ABCMeta):
         return header
 
     @staticmethod
-    def find_files(input_dir: Path) -> Iterable[Path]:
+    def find_files(input_dir: Path) -> list[Path]:
         """Find FITS files in the given folder
 
         Parameters
@@ -410,7 +415,7 @@ class Instrument(metaclass=abc.ABCMeta):
             key: {
                 "instrument": self.info["id_instrument"],
                 "night": night,
-                key: self.info["id_" + key],
+                key: self.info[f"id_{key}"],
             } for key in ["bias", "flat", "orders", "scatter", "curvature"]
         } | {
             key: {
@@ -470,6 +475,8 @@ class Instrument(metaclass=abc.ABCMeta):
             list of files. The first element of each tuple is the used setting,
             and the second are the files for each step.
         """
+        logger.trace(f"Filtering files\n{c.path(pprint.pformat(files))} "
+                     f"for expected header values\n{pprint.pformat(expected)}")
 
         # Fill the filters with header information
         self.populate_filters(files)
@@ -538,7 +545,7 @@ class Instrument(metaclass=abc.ABCMeta):
                 if len(f[step]) == 0:
                     if step not in self.find_closest:
                         # Show a warning
-                        logger.warning(f"Could not find any files for step '{step}' with settings {setting}, "
+                        logger.warning(f"Could not find any files for step {c.name(step)} with settings {setting}, "
                                        f"sharing parameters {self.shared}")
                     else:
                         # Or find the closest night instead
@@ -559,7 +566,7 @@ class Instrument(metaclass=abc.ABCMeta):
                                         j = i
                         if j is None:
                             # We still don't find any files
-                            logger.warning(f"Could not find any files for step '{step}' in any night "
+                            logger.warning(f"Could not find any files for step {c.name(step)} in any night "
                                            f"with settings {setting}, sharing parameters {self.shared}")
                         else:
                             # We found files in a close night
@@ -572,6 +579,7 @@ class Instrument(metaclass=abc.ABCMeta):
                 files.append((setting, f))
         if len(files) == 0:
             logger.warning(f"No {self.science} files found matching the expected values {expected[self.science]}")
+
         return files
 
     def sort_files(self,

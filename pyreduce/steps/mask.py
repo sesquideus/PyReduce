@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 
 from .step import Step
 from .. import colour as c
@@ -12,7 +13,7 @@ class Mask(Step):
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
 
-    def run(self):
+    def run(self) -> np.ndarray[float]:
         """Load the mask file from disk
 
         Returns
