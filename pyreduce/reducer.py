@@ -183,8 +183,8 @@ class Reducer:
                 logger.debug("--------------------------------")
                 return data
         else:
-            logger.info(f"Flag {c.param('skip_existing')} is {c.over('False')} or {c.param('finalize')} not in steps, "
-                        f"all steps will be performed")
+            logger.info(f"Flag {c.param('skip_existing')} is {c.over('False')} or {c.param('finalize')} "
+                        f"is not in steps, all steps will be performed")
 
         steps.sort(key=lambda x: self.step_order[x])
 

@@ -1,10 +1,12 @@
 import logging
 import numpy as np
+import pprint
 import os
 
 from pyreduce.make_shear import Curvature as CurvatureModule
 from .calibration import CalibrationStep
 from .extraction import ExtractionStep
+from .. import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,7 @@ class SlitCurvatureDetermination(CalibrationStep, ExtractionStep):
             second order slit curvature at each point
         """
 
-        logger.info("Slit curvature files: %s", files)
+        logger.info(f"Slit curvature files {pprint.pformat(files)}")
 
         orig, thead = self.calibrate(files, mask, bias, None)
         extracted, _, _, _ = self.extract(orig, thead, orders, None)
@@ -110,7 +112,7 @@ class SlitCurvatureDetermination(CalibrationStep, ExtractionStep):
         """
         try:
             data = np.load(self.savefile, allow_pickle=True)
-            logger.info("Slit curvature file: %s", self.savefile)
+            logger.info(f"Loaded a slit curvature file: {c.path(self.savefile)}")
         except FileNotFoundError:
             logger.warning("No data for slit curvature found, setting it to 0.")
             data = {"tilt": None, "shear": None}

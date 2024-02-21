@@ -499,7 +499,7 @@ def combine_calibrate(files: list[Path],
         Unrecognised bias_scaling option
     """
     logger.debug(f"Running {c.name(combine_calibrate.__qualname__)} for instrument {c.name(instrument.name)} "
-                 f"on data {files}")
+                 f"on data {c.print_list(files, lambda x: c.path(str(x)))}")
 
     # Combine the images and try to remove bad pixels
     orig, thead = combine_frames(files, instrument, mode, mask=mask, **kwargs)

@@ -31,7 +31,7 @@ class UVES(Instrument):
         """Get the filename of the wavelength calibration config file"""
         info = self.load_info()
         specifier = int(header[info["wavecal_specifier"]])
-        return Path(__file__).parents[1] / "wavecal" / f"{self.name}_{mode.lower()}_{specifier}nm_2D.npz"
+        return Path(__file__).parents[2] / "wavecal" / f"{self.name}_{mode.lower()}_{specifier}nm_2D.npz"
 
     def get_mask_filename(self, mode: str, **kwargs) -> Path:
-        return Path(__file__).parents[1] / "masks" / f"mask_{self.name.lower()}_{mode.lower()}.fits.gz"
+        return Path(__file__).parents[2] / "masks" / f"mask_{self.name.lower()}_{mode.lower()}.fits.gz"

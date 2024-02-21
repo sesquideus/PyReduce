@@ -475,8 +475,10 @@ class Instrument(metaclass=abc.ABCMeta):
             list of files. The first element of each tuple is the used setting,
             and the second are the files for each step.
         """
-        logger.trace(f"Filtering files\n{c.path(pprint.pformat(files))} "
-                     f"for expected header values\n{pprint.pformat(expected)}")
+        logger.trace(f"Filtering files")
+        for file in files:
+            logger.trace(f"\t{c.path(file)}")
+        logger.trace(f"for expected header values\n{pprint.pformat(expected)}")
 
         # Fill the filters with header information
         self.populate_filters(files)
@@ -647,7 +649,7 @@ class Instrument(metaclass=abc.ABCMeta):
         return info["modes"]
 
     def get_mask_filename(self, mode, **kwargs) -> Path:
-        return Path(__file__).parents[1] / "masks" / f"mask_{self.name.lower()}_{mode.lower()}.fits.gz"
+        return Path(__file__).parents[2] / "masks" / f"mask_{self.name.lower()}_{mode.lower()}.fits.gz"
 
     def get_wavelength_range(self, header, mode, **kwargs):
         return self.get("wavelength_range", header, mode)
