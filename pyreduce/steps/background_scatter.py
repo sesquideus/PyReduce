@@ -1,6 +1,7 @@
 import logging
-import os
 import numpy as np
+
+from pathlib import Path
 
 from .calibration import CalibrationStep
 from pyreduce.estimate_background_scatter import estimate_background_scatter
@@ -22,9 +23,9 @@ class BackgroundScatter(CalibrationStep):
         self.border_width = config["border_width"]
 
     @property
-    def savefile(self) -> str:
+    def savefile(self) -> Path:
         """str: Name of the scatter file"""
-        return os.path.join(self.output_dir, self.prefix + ".scatter.npz")
+        return self.output_dir / f"{self.prefix}.scatter.npz"
 
     def run(self, files, mask, bias, orders):
         logger.info("Background scatter files: %s", files)
