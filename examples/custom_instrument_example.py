@@ -4,9 +4,7 @@ Loads a sample UVES dataset, and runs the full extraction
 """
 
 import datetime
-import os.path
 
-import pyreduce
 from pyreduce.configuration import get_configuration_for_instrument
 from pyreduce.instruments.instrument import create_custom_instrument
 from pyreduce.reducer import Reducer

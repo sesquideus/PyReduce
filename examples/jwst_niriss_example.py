@@ -4,7 +4,6 @@ Loads a sample JWST NIRISS dataset, and runs the full extraction
 """
 
 import datetime
-import typing
 
 from pathlib import Path
 
@@ -32,4 +31,5 @@ class WorkflowJWST_NIRISS(Workflow):
     output_dir_template: str = "reduced/"
 
 
-WorkflowJWST_NIRISS().process()
+if __name__ == "__main__":
+    WorkflowJWST_NIRISS().process()

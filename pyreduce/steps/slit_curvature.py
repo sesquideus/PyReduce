@@ -61,7 +61,9 @@ class SlitCurvatureDetermination(CalibrationStep, ExtractionStep):
             second order slit curvature at each point
         """
 
-        logger.info(f"Slit curvature files {pprint.pformat(files)}")
+        logger.info(f"Slit curvature files:")
+        for file in files:
+            logger.info(f"\t{c.path(file)}")
 
         orig, thead = self.calibrate(files, mask, bias, None)
         extracted, _, _, _ = self.extract(orig, thead, orders, None)

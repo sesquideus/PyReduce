@@ -8,7 +8,6 @@ import datetime
 from pathlib import Path
 from typing import ClassVar
 
-from pyreduce.datasets import DatasetHARPS
 from workflow import Workflow
 
 
@@ -24,7 +23,6 @@ from workflow import Workflow
 
 class WorkflowExampleHARPS(Workflow):
     instrument_name: str = "HARPS"
-    dataset_class: ClassVar = DatasetHARPS
     target: str = "HD109200"
     night: datetime.date = None
     mode: str = "red"

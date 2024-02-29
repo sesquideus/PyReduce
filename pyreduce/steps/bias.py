@@ -104,7 +104,7 @@ class Bias(Step):
             overwrite=True,
             output_verify="silentfix+ignore",
         )
-        logger.info("Created master bias file: %s", self.savefile)
+        logger.info(f"Created master bias file {c.path(self.savefile)}")
 
     def load(self, mask):
         """Load the master bias from a previous run

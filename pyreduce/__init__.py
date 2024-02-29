@@ -63,16 +63,17 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
     # http://stackoverflow.com/a/13638084/2988730
-    def logForLevel(self, message, *args, **kwargs):
+    def log_for_level(self, message, *args, **kwargs):
         if self.isEnabledFor(levelNum):
             self._log(levelNum, message, args, **kwargs)
-    def logToRoot(message, *args, **kwargs):
+
+    def log_to_root(message, *args, **kwargs):
         logging.log(levelNum, message, *args, **kwargs)
 
     logging.addLevelName(levelNum, levelName)
     setattr(logging, levelName, levelNum)
-    setattr(logging.getLoggerClass(), methodName, logForLevel)
-    setattr(logging, methodName, logToRoot)
+    setattr(logging.getLoggerClass(), methodName, log_for_level)
+    setattr(logging, methodName, log_to_root)
 
 
 addLoggingLevel('TRACE', 5, 'trace')
@@ -85,18 +86,6 @@ logging.captureWarnings(True)
 console = TqdmLoggingHandler()
 console.setLevel(logging.TRACE)
 
-
-def log_for_level(self, message, *args, **kwargs):
-    if self.isEnabledFor(levelNum):
-        self._log(levelNum, message, args, **kwargs)
-
-
-def logToRoot(message, *args, **kwargs):
-    logging.log(levelNum, message, *args, **kwargs)
-
-
-setattr(logging, 'trace', lambda message, *a, **k: logging.log(logging.TRACE, message, *a, **k))
-setattr(logging, 'trace', lambda message, *a, **k: logging.log(logging.TRACE, message, *a, **k))
 
 try:
     import colorlog

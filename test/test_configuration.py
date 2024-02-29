@@ -47,7 +47,7 @@ def test_update():
     # with pytest.raises(KeyError):
     #     conf.update(dict1, {"foo": 1}, check=True)
 
-    res = conf.update(dict1, {"foo": "bar"}, check=False)
+    res = conf.update(dict1, {"foo": "bar"}, warn_missing=False)
     assert res["foo"] == "bar"
 
 

@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class BackgroundScatter(CalibrationStep):
-    """Determine the background scatter"""
+    """ Determine the background scatter """
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
@@ -24,7 +24,7 @@ class BackgroundScatter(CalibrationStep):
 
     @property
     def savefile(self) -> Path:
-        """str: Name of the scatter file"""
+        """ Path to the scatter file """
         return self.output_dir / f"{self.prefix}.scatter.npz"
 
     def run(self, files, mask, bias, orders):
@@ -48,7 +48,7 @@ class BackgroundScatter(CalibrationStep):
         self.save(scatter)
         return scatter
 
-    def save(self, scatter):
+    def save(self, scatter: np.ndarray[float]):
         """Save scatter results to disk
 
         Parameters
@@ -73,6 +73,7 @@ class BackgroundScatter(CalibrationStep):
         except FileNotFoundError:
             logger.warning("No intermediate files found for the scatter. Using scatter = 0 instead.")
             data = {"scatter": None}
+
         scatter = data["scatter"]
         return scatter
 

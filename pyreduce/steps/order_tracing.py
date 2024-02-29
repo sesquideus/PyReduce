@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 
 from pyreduce.trace_orders import mark_orders
+from pyreduce import colour as c
 from .calibration import CalibrationStep
 
 
@@ -61,7 +62,9 @@ class OrderTracing(CalibrationStep):
             first and last(+1) column that carries signal in each order
         """
 
-        logger.info("Order tracing files: %s", files)
+        logger.info("Order tracing files:")
+        for file in files:
+            logger.info(f"\t{c.path(file)}")
 
         order_img, ohead = self.calibrate(files, mask, bias, None)
 

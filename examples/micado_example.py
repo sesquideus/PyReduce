@@ -3,46 +3,42 @@ Simple usage example for PyReduce
 Loads a ScopeSim simulated MICADO dataset (with updated spectral layout and updated line lists), and runs the full extraction. 
 """
 
-import os.path
-import pyreduce
-from pyreduce import datasets
+import datetime
+
+from pathlib import Path
+
+from workflow import Workflow
 
 
-# define parameters
-instrument = "MICADO"
-target = ""
-night = ""
-mode = ""
-steps = (
-     # "bias",
-     "flat",
-     "orders",
-     "curvature",
-     # # "scatter",
-     # "norm_flat", 
-     "wavecal",
-     # "science",
-     # "continuum",
-     # "finalize",
-)
-
-# Some basic settings
-# Expected Folder Structure: base_dir/datasets/MICADO/*.fits.gz
-# Feel free to change this to your own preference, values in curly brackets will be replaced with the actual values {}
-
-# Define the path for the base, input and output directories
-# The data (with fixed header keywords) can be fetched from https://www.dropbox.com/sh/e3lnvtkmyjveajk/AABPHxeUdDO5AnkWCAjbM0e1a?dl=0 and stored in input_dir
-
-#PC
-base_dir ="/media/data/Dropbox/Dropbox/WORKING/iMICADO/Working/WORKING_PyReduce/DATA/datasets/MICADO/"# an example path which you should change to your prefered one 
-
-input_dir = "raw_new/HK/"
-output_dir = "reduced_new/"
-
-config = pyreduce.configuration.get_configuration_for_instrument(instrument, plot=1)
+class WorkflowMicado(Workflow):
+    instrument_name: str = "MICADO"
+    target: str = None
+    night: datetime.date = None
+    mode: str = ""
+    data_url = "https://www.dropbox.com/sh/e3lnvtkmyjveajk/AABPHxeUdDO5AnkWCAjbM0e1a?dl=1"
+    steps: list[str] = [
+        # "bias",
+        "flat",
+        "orders",
+        "curvature",
+        # "scatter",
+        # "norm_flat",
+        "wavecal",
+        # "science",
+        # "continuum",
+        # "finalize"
+    ]
+    local_dir: Path = Path("~/astar/pyreduce/data/").expanduser()
+    base_dir_template: str = None
+    input_dir_template: str = "raw_new/HK/"
+    output_dir_template: str = "reduced_new/"
+    order_range: tuple[int, int] = (3, 4)
 
 
-# Configuring parameters of individual steps here overwrites those defined  in the settings_MICADO.json file. 
+if __name__ == "__main__":
+    WorkflowMicado().process()
+
+# Configuring parameters of individual steps here overwrites those defined  in the settings_MICADO.json file.
 # Once you are satisfied with a certain parameter, you can update it in settings_MICADO.json.
 
 
@@ -53,17 +49,9 @@ config = pyreduce.configuration.get_configuration_for_instrument(instrument, plo
 # config["curvature"]["window_width"] = 5
 # config["wavecal"]["extraction_width"] = 350
 
-#NOTE: micado.thar_master.fits (created and controlled by wavecal_master) is NOT overwritten if any parameter in the steps in or before it are changed. Thus it has to be deleted before running PyReduce again.
+# NOTE: micado.thar_master.fits (created and controlled by wavecal_master) is NOT overwritten if any parameter
+# in the steps in or before it are changed. Thus it has to be deleted before running PyReduce again.
 
-pyreduce.reduce.main(
-    instrument,
-    target,
-    night,
-    mode,
-    steps,
-    base_dir_template=base_dir,
-    input_dir_template=input_dir,
-    output_dir_template=output_dir,
-    configuration=config,
-    order_range=(3, 4),     #for MICADO, when one order is on the detector (currently detector 5 of the HK band)
-)
+# Define the path for the base, input and output directories
+# The data (with fixed header keywords) can be fetched from
+# https://www.dropbox.com/sh/e3lnvtkmyjveajk/AABPHxeUdDO5AnkWCAjbM0e1a?dl=0 and stored in input_dir

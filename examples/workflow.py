@@ -28,6 +28,8 @@ class Workflow(metaclass=abc.ABCMeta):
     base_dir_template: str = None
     input_dir_template: str = None
     output_dir_template: str = None
+    # URL to retrieve the data from
+    data_url: str = None
     debug: bool = False
 
     def __init__(self):
@@ -40,13 +42,6 @@ class Workflow(metaclass=abc.ABCMeta):
                                     help="Enable interactive plotting (currently not working)")
         self.add_arguments()
         self.args = self.argparser.parse_args()
-
-        self.configuration = None
-        self.dataset = Dataset(instrument_name=self.instrument_name,
-                               target=self.target,
-                               local_dir=self.local_dir)
-        self.base_dir_template = str(self.dataset.data_dir)
-
         self.debug = self.args.debug
         self.trace = self.args.trace
         self.plot = self.args.plot
@@ -59,6 +54,13 @@ class Workflow(metaclass=abc.ABCMeta):
             logger.setLevel(logging.TRACE)
             logger.warning(f"Workflow {c.name(self.__class__.__name__)} running in tracing mode, expect lots of output")
 
+        self.configuration = None
+        self.dataset = Dataset(instrument_name=self.instrument_name,
+                               target=self.target,
+                               local_dir=self.local_dir,
+                               url=self.data_url)
+        self.base_dir_template = str(self.dataset.data_dir)
+
     def add_arguments(self) -> None:
         """ Hook for adding more arguments in derived workflows """
         pass
@@ -70,7 +72,7 @@ class Workflow(metaclass=abc.ABCMeta):
     def process(self):
         """ Load and override the configuration and then run the workflow """
         logger.info(f"Workflow {c.name(self.__class__.__name__)} is about to run the following steps: "
-                    f"{c.name(self.steps)}")
+                    f"{', '.join([c.name(step) for step in self.steps])}")
 
         self.configuration = pyreduce.configuration.get_configuration_for_instrument(self.instrument_name, plot=1)
         self.override_configuration()

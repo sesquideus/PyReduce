@@ -10,10 +10,10 @@ from collections import OrderedDict
 from .instruments.instrument import Instrument
 from .instruments.instrument_info import load_instrument
 from .steps import (Step, ExtractionStep, CalibrationStep,
-                   Bias, Flat, Mask, OrderTracing, SlitCurvatureDetermination, Finalize, BackgroundScatter,
-                   NormalizeFlatField, RectifyImage, ScienceExtraction,
-                   ContinuumNormalization, LaserFrequencyCombMaster, LaserFrequencyCombFinalize,
-                   WavelengthCalibrationInitialize, WavelengthCalibrationMaster, WavelengthCalibrationFinalize)
+                    Bias, Flat, Mask, OrderTracing, SlitCurvatureDetermination, Finalize, BackgroundScatter,
+                    NormalizeFlatField, RectifyImage, ScienceExtraction,
+                    ContinuumNormalization, LaserFrequencyCombMaster, LaserFrequencyCombFinalize,
+                    WavelengthCalibrationInitialize, WavelengthCalibrationMaster, WavelengthCalibrationFinalize)
 from . import colour as c
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class Reducer:
     }
 
     def __init__(self,
-                 classified_files: dict[str, Path],
+                 classified_files: dict[str, list[Path]],
                  output_dir_template: str,
                  target: str,
                  instrument: Instrument,
@@ -129,7 +129,7 @@ class Reducer:
                 logger.warning(f"Intermediate file(s) for loading step {c.act(step)} not found. Running it instead.")
                 data = self.run_module(step, load=False)
         else:
-            logger.info(f"Running step {c.act(step)}")
+            logger.debug(f"Running step {c.act(step)}")
             if step in self.files.keys():
                 kwargs["files"] = self.files[step]
 
@@ -138,7 +138,7 @@ class Reducer:
         self.data[step] = data
         return data
 
-    def prepare_output_dir(self):
+    def prepare_output_dir(self) -> None:
         """ Create output folder structure if necessary """
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
 

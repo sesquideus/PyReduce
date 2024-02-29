@@ -3,10 +3,7 @@ Simple usage example for PyReduce
 Loads a sample UVES dataset, and runs the full extraction
 """
 import datetime
-import typing
-from pathlib import Path
 
-from pyreduce.datasets import DatasetXSHOOTER
 from workflow import Workflow
 
 
@@ -15,8 +12,18 @@ class WorkflowXShooter(Workflow):
     target: str = "UX-Ori"
     night: datetime.date = None
     mode: str = "NIR"
-    steps: list[str] = ["bias", "flat", "orders", "scatter", "norm_flat",
-                        "curvature", "wavecal", "science", "continuum", "finalize"]
+    steps: list[str] = [
+        "bias",
+        "flat",
+        "orders",
+        "scatter",
+        "norm_flat",
+        "curvature",
+        "wavecal",
+        "science",
+        "continuum",
+        "finalize",
+    ]
     input_dir_template: str = "raw/"
     output_dir_template: str = "reduced/"
     order_range: tuple[int, int] = (0, 15)

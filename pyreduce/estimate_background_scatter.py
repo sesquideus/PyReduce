@@ -1,6 +1,4 @@
-"""
-Module that estimates the background scatter
-"""
+""" Module that estimates the background scatter """
 
 import logging
 

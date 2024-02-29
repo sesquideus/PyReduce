@@ -96,7 +96,7 @@ def load_config(configuration: None | str | list | dict | Path, instrument_name:
     return settings
 
 
-def update(dict1: dict, dict2: dict, check: bool = True, name: str = "dict1") -> dict:
+def update(dict1: dict, dict2: dict, warn_missing: bool = True, name: str = "dict1") -> dict:
     """
     Update entries in dict1 with entries of dict2 recursively,
     i.e. if the dict contains a dict value, values inside the dict will
@@ -108,7 +108,7 @@ def update(dict1: dict, dict2: dict, check: bool = True, name: str = "dict1") ->
         dict that will be updated
     dict2 : dict
         dict that contains the values to update
-    check : bool
+    warn_missing : bool
         If True, will check that the keys from dict2 exist in dict1 already.
         Except for those contained in field "instrument"
 
@@ -128,10 +128,10 @@ def update(dict1: dict, dict2: dict, check: bool = True, name: str = "dict1") ->
     exclude = ["instrument"]
 
     for key, value in dict2.items():
-        if check and key not in dict1.keys():
-            logger.warning(f"{key} is not contained in {name}")
+        if warn_missing and key not in dict1.keys():
+            logger.warning(f"{c.name(key)} is not contained in key {c.name(name)}")
         if isinstance(value, dict):
-            dict1[key] = update(dict1[key], value, check=key not in exclude, name=key)
+            dict1[key] = update(dict1[key], value, warn_missing=key not in exclude, name=key)
         else:
             dict1[key] = value
     return dict1

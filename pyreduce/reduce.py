@@ -178,7 +178,7 @@ def main(instrument_name: str,
         )
         if len(files) == 0:
             logger.warning(f"No files found for instrument {c.name(instrument.name)}, target: {c.name(t)}, "
-                           f"night: {c.name(n)}, mode: {m} in folder {c.path(input_dir_template)}")
+                           f"night: {c.name(n)}, mode: {c.name(m)} in directory {c.path(input_dir_template)}")
         else:
             for k, f in files:
                 logger.info("Settings:")

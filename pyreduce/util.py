@@ -121,8 +121,8 @@ def air2vac(wl_air: np.ndarray[float]) -> np.ndarray[float]:
 
 
 def swap_extension(fname, ext, path=None):
-    """exchange the extension of the given file with a new one"""
-    # TODO: Can be replaced by Path.with_extension
+    """ Change the extension of the given file to a new one """
+    # TODO: Can be replaced by Path.with_extension?
     if path is None:
         path = os.path.dirname(fname)
     nameout = os.path.basename(fname)
@@ -500,7 +500,7 @@ def polyfit1d(x, y, degree=1, regularization=0):
     return coeff
 
 
-def _get_coeff_idx(coeff):
+def _get_coeff_idx(coeff: np.ndarray[float]) -> np.ndarray[float]:
     idx = np.indices(coeff.shape)
     idx = idx.T.swapaxes(0, 1).reshape((-1, 2))
     # degree = coeff.shape
@@ -529,13 +529,8 @@ def _unscale(x, y, norm, offset):
     return x, y
 
 
-def polyvander2d(x, y, degree):
-    # A = np.array([x ** i * y ** j for i, j in idx], dtype=float).T
-    A = np.polynomial.polynomial.polyvander2d(x, y, degree)
-    return A
 
-
-def polyscale2d(coeff, scale_x, scale_y, copy=True):
+def polyscale2d(coeff: np.ndarray[float], scale_x: float, scale_y: float, copy=True):
     if copy:
         coeff = np.copy(coeff)
     idx = _get_coeff_idx(coeff)
@@ -638,7 +633,7 @@ def polyfit2d(
     idx = _get_coeff_idx(coeff)
 
     # Calculate elements 1, x, y, x*y, x**2, y**2, ...
-    A = polyvander2d(x, y, degree)
+    A = np.polynomial.polynomial.polyvander2d(x, y, degree)
 
     # We only want the combinations with maximum order COMBINED power
     if max_degree is not None:

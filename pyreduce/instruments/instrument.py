@@ -427,7 +427,7 @@ class Instrument(metaclass=abc.ABCMeta):
         }
         return expectations
 
-    def populate_filters(self, files: Iterable[Path]) -> list[Filter]:
+    def populate_filters(self, files: Iterable[Path]) -> dict[str, Filter]:
         """Extract values from the fits headers and store them in `self.filters`
 
         Parameters
@@ -437,12 +437,14 @@ class Instrument(metaclass=abc.ABCMeta):
 
         Returns
         -------
-        filters: list(Filter)
+        filters: dict[str, Filter]
             list of populated filters (identical to `self.filters`)
         """
         # Empty filters
         for _, fil in self.filters.items():
             fil.clear()
+
+        logger.debug(f"Populating filters for {c.num(len(files))} files...")
 
         for f in tqdm(files):
             h = fits.open(f)[0].header

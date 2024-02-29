@@ -40,7 +40,7 @@ class Flat(CalibrationStep):
             overwrite=True,
             output_verify="silentfix+ignore",
         )
-        logger.info("Created master flat file: %s", self.savefile)
+        logger.info(f"Created master flat file {c.path(self.savefile)}")
 
     def run(self, files, bias, mask):
         """Calculate the master flat, with the bias already subtracted

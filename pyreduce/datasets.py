@@ -17,7 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class Dataset(metaclass=abc.ABCMeta):
+    # Static URL for download of prepared datasets
     server_url: str = r"http://sme.astro.uu.se/pyreduce/"
+    # If None, use default server / name, otherwise download from here
+    data_url: str = None
     instrument_name: str = None
     target: str = None
     _local_dir: Path = None
@@ -31,14 +34,18 @@ class Dataset(metaclass=abc.ABCMeta):
     def data_dir(self) -> Path:
         return self._data_dir
 
-    @staticmethod
-    def load_data_from_server(filename: str, directory: Path) -> None:
-        wget.download(f"{Dataset.server_url}{filename}", out=str(directory / filename))
+    def load_data_from_server(self) -> None:
+        wget.download(f"{Dataset.server_url}{self.instrument_name}.tar.gz",
+                      out=f"{self.data_dir}/{self.instrument_name}.tar.gz")
+
+    def load_data_from_dropbox(self) -> None:
+        wget.download(self.data_url, out=f"{self.data_dir}/{self.instrument_name}.tar.gz")
 
     def __init__(self,
                  instrument_name: str = None,
                  target: str = None,
                  *,
+                 url: str = None,
                  local_dir: Path | None = None):
         """
         Load a dataset
@@ -58,6 +65,10 @@ class Dataset(metaclass=abc.ABCMeta):
         # If no local dir is provided, use the parent of current file
         self.instrument_name = instrument_name
         self.target = target
+
+        if url is not None:
+            self.server_url = url
+
         if local_dir is None:
             self._local_dir = Path(__file__).parent
         else:
@@ -77,7 +88,12 @@ class Dataset(metaclass=abc.ABCMeta):
         else:
             logger.info(f"Dataset {c.name(self.instrument_name)} does not exist at {c.path(filename)}, "
                         f"downloading to {c.path(self.data_dir)}")
-            self.load_data_from_server(fname, self.data_dir)
+            if self.data_url is None:
+                logger.debug(f"No data_url defined, defaulting to {c.path(self.server_url)}")
+                self.load_data_from_server()
+            else:
+                logger.debug(f"Attempting to download from {c.path(self.data_url)}")
+                self.load_data_from_dropbox()
 
         # Extract the downloaded .tar.gz file
         with tarfile.open(filename) as file:
@@ -86,50 +102,3 @@ class Dataset(metaclass=abc.ABCMeta):
             if len(names) != 0:
                 logger.info(f"Extracting data from tarball {c.path(file.name)}")
                 file.extractall(path=raw_dir, members=names)
-
-        #def download_and_extract(root_url: str = r"http://sme.astro.uu.se/pyreduce/"):
-
-
-class DatasetUVES(Dataset):  # pragma: no cover
-    instrument_name: str = "UVES"
-    target: str = "HD132205"
-
-
-class DatasetHARPS(Dataset):  # pragma: no cover
-    instrument_name: str = "HARPS"
-    target: str = "HD109200"
-
-
-class DatasetLICK_APF(Dataset):  # pragma: no cover
-    instrument_name: str = "LICK_APF"
-    target: str = "KIC05005618"
-
-
-class DatasetMCDONALD(Dataset):  # pragma: no cover
-    instrument_name: str = "JWST_MIRI"
-    target: str = "?"
-
-
-class DatasetXSHOOTER(Dataset):  # pragma: no cover
-    instrument_name: str = "XSHOOTER"
-    target: str = "Ux-Ori"
-
-
-class DatasetJWST_MIRI(Dataset):  # pragma: no cover
-    instrument_name: str = "JWST_MIRI"
-    target: str = "?"
-
-
-class DatasetJWST_NIRISS(Dataset):  # pragma: no cover
-    instrument_name: str = "JWST_NIRISS"
-    target: str = "?"
-
-
-class DatasetKECK_NIRSPEC(Dataset):  # pragma: no cover
-    instrument_name: str = "KECK_NIRSPEC"
-    target: str = "GJ1214"
-
-
-class DatasetMETIS(Dataset):
-    instrument_name: str = "METIS"
-    target: str = None

@@ -5,11 +5,9 @@ By Nadeen Sabha
 """
 
 import datetime
-import typing
 
 from pathlib import Path
 
-from pyreduce.datasets import DatasetMETIS
 from workflow import Workflow
 
 
@@ -42,7 +40,7 @@ from workflow import Workflow
 
 class WorkflowExampleMETIS(Workflow):
     instrument_name: str = "METIS"
-    dataset_class: typing.ClassVar = DatasetMETIS
+    data_url: str = "https://www.dropbox.com/sh/h1dz80vsw4lwoel/AAAqJD_FGDGC-t12wgnPXVR8a"
     target: str = r"HD[- ]?132205"
     night: datetime.date = datetime.date(2010, 4, 1)
     mode: str = "LSS_M"  # LSS_M (settings_metis.json is now optimized for LSS_M mode)

@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
-Wavelength Calibration
-by comparison to a reference spectrum
-Loosely bases on the IDL wavecal function
+Wavelength Calibration by comparison to a reference spectrum
+Loosely based on the IDL wavecal function
 """
 
 import logging
@@ -126,6 +124,7 @@ class AlignmentPlot:
 class LineAtlas:
     def __init__(self, element, medium="vac"):
         self.element = element
+        assert medium in ["vac", "air"], "Medium must be either 'vac' or 'air'."
         self.medium = medium
 
         fname = element.lower() + ".fits"
@@ -160,8 +159,8 @@ class LineAtlas:
                 [wpos, heights, element], names=["wave", "heights", "element"]
             )
 
-        # The data files are in vacuum, if the instrument is in air, we need to convert
-        if medium == "air":
+        # The data files are in vaccuum, if the instrument is in air, we need to convert
+        if self.medium == "air":
             self.wave = util.vac2air(self.wave)
             self.linelist["wave"] = util.vac2air(self.linelist["wave"])
 
