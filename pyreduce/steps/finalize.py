@@ -81,8 +81,8 @@ class Finalize(Step):
                     head["e_jd"],
                 )
 
-                logger.debug("Heliocentric correction: %f km/s", rv_corr)
-                logger.debug("Heliocentric Julian Date: %s", str(bjd))
+                logger.info(f"Heliocentric correction: {rv_corr:.6f} km/s")
+                logger.info(f"Heliocentric Julian Date: {str(bjd)}")
             except KeyError:
                 logger.warning("Could not calculate heliocentric correction")
                 # logger.warning("Telescope is in space?")
@@ -135,5 +135,5 @@ class Finalize(Step):
         echelle.save(
             out_file, head, spec=spec, sig=sigma, cont=cont, wave=wave, columns=columns
         )
-        logger.info("Final science file: %s", out_file)
+        logger.info(f"Final science file: {c.path(out_file)}")
         return out_file

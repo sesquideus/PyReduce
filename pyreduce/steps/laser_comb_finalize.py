@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class LaserFrequencyCombFinalize(Step):
-    """Improve the precision of the wavelength calibration with a laser frequency comb"""
+    """ Improve the precision of the wavelength calibration with a laser frequency comb """
 
     def __init__(self, *args, **config):
         super().__init__(*args, **config)
@@ -32,7 +32,7 @@ class LaserFrequencyCombFinalize(Step):
         """ Return the name of the wavelength echelle file"""
         return self.output_dir / f"{self.prefix}.comb.npz"
 
-    def run(self, freq_comb_master, wavecal):
+    def run(self, files, wavecal):
         """
         Improve the wavelength calibration with a laser frequency comb (or similar)
 
@@ -54,7 +54,7 @@ class LaserFrequencyCombFinalize(Step):
         comb : array of shape (nord, ncol)
             extracted frequency comb image
         """
-        comb, chead = freq_comb_master
+        comb, chead = files
         wave, coef, linelist = wavecal
 
         module = WavelengthCalibrationComb(
@@ -80,7 +80,7 @@ class LaserFrequencyCombFinalize(Step):
             improved wavelength solution
         """
         np.savez(self.savefile, wave=wave)
-        logger.info("Created frequency comb wavecal file: %s", self.savefile)
+        logger.info(f"Created frequency comb wavecal file: %s", self.savefile)
 
     def load(self, wavecal):
         """Load the results of the frequency comb improvement if possible,

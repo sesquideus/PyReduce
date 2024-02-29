@@ -1,7 +1,7 @@
 import logging
 import joblib
 
-from os.path import join
+from pathlib import Path
 
 from pyreduce.continuum_normalization import continuum_normalize, splice_orders
 from .step import Step
@@ -18,9 +18,9 @@ class ContinuumNormalization(Step):
         self._load_depends_on += ["norm_flat", "science"]
 
     @property
-    def savefile(self):
+    def savefile(self) -> Path:
         """str: savefile name"""
-        return join(self.output_dir, self.prefix + ".cont.npz")
+        return self.output_dir / f"{self.prefix}.cont.npz"
 
     def run(self, science, freq_comb, norm_flat):
         """Determine the continuum to each observation
@@ -101,7 +101,7 @@ class ContinuumNormalization(Step):
             "columns": columns,
         }
         joblib.dump(value, self.savefile)
-        logger.info("Created continuum normalization file: %s", self.savefile)
+        logger.info(f"Created continuum normalization file: {self.savefile}")
 
     def load(self, norm_flat, science):
         """Load the results from the continuum normalization

@@ -23,7 +23,7 @@ def estimate_background_scatter(
     border_width: int = 10,
     plot: bool = False,
     plot_title: str = None,
-):
+) -> np.ndarray[float]:
     """
     Estimate the background by fitting a 2d polynomial to interorder data
 
@@ -102,7 +102,7 @@ def estimate_background_scatter(
     y, x, z = y[mask], x[mask], z[mask]
 
     coeff = polyfit2d(x, y, z, degree=scatter_degree, plot=plot, plot_title=plot_title)
-    logger.debug("Background scatter coefficients: %s", str(coeff))
+    logger.debug(f"Background scatter coefficients: {str(coeff)}")
 
     if plot:  # pragma: no cover
         # Calculate scatter at interorder positionsq

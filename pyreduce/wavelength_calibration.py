@@ -6,12 +6,11 @@ Loosely bases on the IDL wavecal function
 """
 
 import logging
-from os.path import dirname, join
-
 import corner
 import emcee
 import matplotlib.pyplot as plt
 import numpy as np
+
 from astropy.io import fits
 from numpy.polynomial.polynomial import Polynomial, polyval2d
 from scipy import signal
@@ -21,6 +20,9 @@ from scipy.ndimage.filters import gaussian_filter1d
 from scipy.ndimage.morphology import grey_closing
 from scipy.optimize import curve_fit
 from tqdm import tqdm
+
+from os.path import dirname, join
+from pathlib import Path
 
 from . import util
 
@@ -158,12 +160,13 @@ class LineAtlas:
                 [wpos, heights, element], names=["wave", "heights", "element"]
             )
 
-        # The data files are in vaccuum, if the instrument is in air, we need to convert
+        # The data files are in vacuum, if the instrument is in air, we need to convert
         if medium == "air":
             self.wave = util.vac2air(self.wave)
             self.linelist["wave"] = util.vac2air(self.linelist["wave"])
 
-    def load_fits(self, fname):
+    @staticmethod
+    def load_fits(fname: Path) -> tuple[np.ndarray[float], np.ndarray[float]]:
         hdu = fits.open(fname)
         if len(hdu) == 1:
             # Its just the spectrum
@@ -1288,6 +1291,9 @@ class WavelengthCalibration:
                 for _, v in steps_coef.items():
                     k += np.size(v)
                 k += np.size(poly_coef)
+            else:
+                raise ValueError(f"Wavelength calibration dimensionality must be one of ['1D', '2D'], "
+                                 f"but got {self.dimensionality}")
         else:
             k = np.size(wave_solution) + 1
 

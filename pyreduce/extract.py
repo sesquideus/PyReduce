@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module for extracting data from observations
 
 Authors
@@ -13,7 +12,6 @@ License
 
 import logging
 
-import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
@@ -254,7 +252,7 @@ class Swath:
 
 def fix_parameters(xwd, cr, orders, nrow, ncol, nord, ignore_column_range=False):
     """Fix extraction width and column range, so that all pixels used are within the image.
-    I.e. the column range is cut so that the everything is within the image
+    I.e. the column range is cut so that everything is within the image
 
     Parameters
     ----------

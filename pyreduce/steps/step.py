@@ -37,7 +37,7 @@ class Step(metaclass=abc.ABCMeta):
         self._output_dir_template: str = output_dir_template
 
     @abc.abstractmethod
-    def run(self, files, *args):  # pragma: no cover
+    def run(self, files: list[Path], *args):  # pragma: no cover
         """Execute the current step
 
         This should fail if files are missing or anything else goes wrong.
@@ -109,3 +109,18 @@ class Step(metaclass=abc.ABCMeta):
             return f"{name}_{mode}"
         else:
             return name
+
+
+class SingleFileStep(Step):
+    """ Base class for steps operating on a single file """
+    @abc.abstractmethod
+    def run(self, file: Path) -> None:
+        """ Take a single file and do something with it """
+
+
+class MultiFileStep(Step):
+    """ Base class for steps that take multiple files """
+
+    @abc.abstractmethod
+    def run(self, files: list[Path], **kwargs):
+        """ Take a list of files and do something with them. Must be overridden by subclasses. """

@@ -41,7 +41,7 @@ from workflow import Workflow
 
 
 class WorkflowExampleMETIS(Workflow):
-    instrument: str = "METIS"
+    instrument_name: str = "METIS"
     dataset_class: typing.ClassVar = DatasetMETIS
     target: str = r"HD[- ]?132205"
     night: datetime.date = datetime.date(2010, 4, 1)
