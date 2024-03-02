@@ -11,7 +11,7 @@ from .tools.combine import combine as tools_combine
 scripts = ["reduce", "combine"]
 
 
-def help():
+def print_help():
     parser = argparse.ArgumentParser(
         description="PyReduce script tools interface", prog="python -m pyreduce"
     )
@@ -88,14 +88,15 @@ def combine():
 if __name__ == "__main__":
     # Determine which script to run
     if len(sys.argv) == 1:
-        script = "help"
+        script = "print_help"
     else:
         script = sys.argv[1]
 
     # Run the chosen script
-    if script == "reduce":
-        reduce()
-    elif script == "combine":
-        combine()
-    else:
-        help()
+    match script:
+        case "reduce":
+            reduce()
+        case "combine":
+            combine()
+        case _:
+            print_help()

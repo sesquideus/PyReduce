@@ -76,8 +76,8 @@ class JWST_NIRISS(Instrument):
             files.append(fname_this)
         return files
 
-    def sort_files(self, input_dir_template, target, night, mode, allow_calibration_only=False):
-        files = super().sort_files(
+    def classify_files(self, input_dir_template, target, night, mode, allow_calibration_only=False):
+        files = super().classify_files(
             input_dir_template,
             target,
             night,

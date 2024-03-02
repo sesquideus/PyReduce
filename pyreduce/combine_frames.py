@@ -250,11 +250,11 @@ def combine_frames(files: list[Path],
     assert isinstance(files, list), f"A list of files is expected as an input, got {type(files)}"
     assert isinstance(instrument, Instrument), "All instruments must be Instrument instances at this stage"
 
-    logger.debug(f"Combining frames for instrument {instrument.name} in mode {mode} for files:")
+    logger.info(f"Combining frames for instrument {c.name(instrument.name)} in mode {c.name(mode)} for files:")
     for i, file in zip(range(len(files)), files):
-        logger.debug(f"\t{i}\t{file}")
+        logger.info(f"\t{i}\t{c.path(file)}")
 
-    DEBUG_NROWS = 100  # print status update every DEBUG_NROWS rows (if debug is True)
+    DEBUG_NROWS = 128  # print status update every DEBUG_NROWS rows (if debug is True)
     if instrument is None or isinstance(instrument, str):
         instrument = load_instrument(instrument)
 
@@ -653,7 +653,7 @@ def combine_bias(files: list[Path],
                  extension: int | str = None,  # ToDo I guess only int makes sense...?
                  plot: bool = False,
                  plot_title: str = None,
-                 science_observation_time = None,
+                 science_observation_time=None,
                  debug: bool = False,
                  **kwargs):
     """

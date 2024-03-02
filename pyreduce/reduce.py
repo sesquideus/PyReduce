@@ -162,13 +162,11 @@ def main(instrument_name: str,
     for t, n, m in itertools.product(targets, nights, modes):
         assert isinstance(n, datetime.date)
 
-        log_file = os.path.join(
-            base_dir_template.format(instrument=instrument.name, mode=modes, target=t),
-            "logs/%s.log" % t,
-        )
+        log_file = (Path(base_dir_template.format(instrument=instrument.name, mode=modes, target=t)) /
+                    "logs" / f"{t}.log")
         util.start_logging(log_file)
         # find input files and sort them by type
-        files = instrument.sort_files(
+        files = instrument.classify_files(
             input_dir_template,
             t,
             n,
@@ -180,20 +178,24 @@ def main(instrument_name: str,
             logger.warning(f"No files found for instrument {c.name(instrument.name)}, target: {c.name(t)}, "
                            f"night: {c.name(n)}, mode: {c.name(m)} in directory {c.path(input_dir_template)}")
         else:
-            for k, f in files:
+            for settings, filedict in files:
                 logger.info("Settings:")
-                for key, value in k.items():
-                    logger.info("%s: %s", key, value)
+                for key, value in settings.items():
+                    logger.info(f"\t{c.param(key)}: {c.param(value)}")
 
-                logger.debug(f"Dataset files after classification:\n{pprint.pformat(f)}")
+                logger.info("Input files were classified")
+                for step, filelist in filedict.items():
+                    logger.debug(f"\t{c.name(step)}")
+                    for path in filelist:
+                        logger.debug(f"\t\t{c.path(path)}")
 
                 reducer = Reducer(
-                    f,
+                    filedict,
                     output_dir_template,
-                    k.get("target"),
+                    settings.get("target"),
                     instrument,
                     m,
-                    k.get("night"),
+                    settings.get("night"),
                     config,
                     order_range=order_range,
                     skip_existing=skip_existing,

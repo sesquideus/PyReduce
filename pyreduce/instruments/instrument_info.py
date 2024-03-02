@@ -87,7 +87,7 @@ def sort_files(input_dir_template: str, target: str, night: datetime.date, instr
     """
 
     instrument = load_instrument(instrument)
-    return instrument.sort_files(input_dir_template, target, night, mode, **kwargs)
+    return instrument.classify_files(input_dir_template, target, night, mode, **kwargs)
 
 
 def get_supported_modes(instrument):

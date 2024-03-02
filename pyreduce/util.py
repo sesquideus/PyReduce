@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants
 import scipy.interpolate
+
 from astropy import coordinates as coord
 from astropy import time
 from astropy import units as u
@@ -17,6 +18,7 @@ from scipy.linalg import lstsq, solve, solve_banded
 from scipy.ndimage.filters import median_filter
 from scipy.optimize import curve_fit, least_squares
 from scipy.special import binom
+from pathlib import Path
 
 from . import __version__
 from .clipnflip import clipnflip
@@ -62,7 +64,7 @@ def log_version():
     logger.debug(f"PyReduce version: {__version__}")
 
 
-def start_logging(log_file: str = "log.log"):
+def start_logging(log_file: Path = "log.log"):
     """Start logging to log file and command line
 
     Parameters
@@ -71,12 +73,11 @@ def start_logging(log_file: str = "log.log"):
         name of the logging file (default: "log.log")
     """
 
-    os.makedirs(os.path.dirname(log_file), exist_ok=True)
-
+    log_file.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
-        filename=log_file,
         level=logging.DEBUG,
         format="%(asctime)-15s - %(levelname)s - %(name)-8s - %(message)s",
+        handlers=[logging.FileHandler(log_file)]
     )
     logging.captureWarnings(True)
     log_version()

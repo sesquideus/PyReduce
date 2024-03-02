@@ -55,7 +55,7 @@ class NIRSPEC(Instrument):
         header["EXPTIME"] = header.get("ITIME", 0) * header.get("COADDS", 0)
         return header
 
-    def sort_files(self, input_dir_template, target, night, mode, calibration_dir, **kwargs):
+    def classify_files(self, input_dir_template, target, night, mode, calibration_dir, **kwargs):
         """
         Sort a set of fits files into different categories
         types are: bias, flat, wavecal, orderdef, spec

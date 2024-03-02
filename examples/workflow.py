@@ -58,7 +58,7 @@ class Workflow(metaclass=abc.ABCMeta):
         self.dataset = Dataset(instrument_name=self.instrument_name,
                                target=self.target,
                                local_dir=self.local_dir,
-                               url=self.data_url)
+                               data_url=self.data_url)
         self.base_dir_template = str(self.dataset.data_dir)
 
     def add_arguments(self) -> None:

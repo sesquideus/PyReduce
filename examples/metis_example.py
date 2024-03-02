@@ -40,6 +40,7 @@ from workflow import Workflow
 
 class WorkflowExampleMETIS(Workflow):
     instrument_name: str = "METIS"
+    # For now this does not work, download it manually, unzip, repack as .tar.gz and place to `data/datasets/`.
     data_url: str = "https://www.dropbox.com/sh/h1dz80vsw4lwoel/AAAqJD_FGDGC-t12wgnPXVR8a"
     target: str = r"HD[- ]?132205"
     night: datetime.date = datetime.date(2010, 4, 1)
@@ -67,8 +68,6 @@ class WorkflowExampleMETIS(Workflow):
     # for all detected orders > outside of image
     order_range: tuple[int, int] = (16, 17)
 
-# some basic settings
-# feel free to change this to your own preference, values in curly brackets will be replaced with the actual values {}
 
-
-WorkflowExampleMETIS().process()
+if __name__ == "__main__":
+    WorkflowExampleMETIS().process()

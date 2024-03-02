@@ -310,7 +310,7 @@ def files(input_dir, instrument, target, night, mode, settings, instr):
     """
 
     print(input_dir, target, night, instrument, mode, *settings["instrument"])
-    files = instr.sort_files(input_dir, target, night, mode, **settings["instrument"])
+    files = instr.classify_files(input_dir, target, night, mode, **settings["instrument"])
     files = files[0][1]
     return files
 

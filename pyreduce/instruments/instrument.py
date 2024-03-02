@@ -444,7 +444,7 @@ class Instrument(metaclass=abc.ABCMeta):
         for _, fil in self.filters.items():
             fil.clear()
 
-        logger.debug(f"Populating filters for {c.num(len(files))} files...")
+        logger.debug(f"Populating filters")
 
         for f in tqdm(files):
             h = fits.open(f)[0].header
@@ -586,15 +586,15 @@ class Instrument(metaclass=abc.ABCMeta):
 
         return files
 
-    def sort_files(self,
-                   input_dir_template: str,
-                   target: str,
-                   night: datetime.date,
-                   *args,
-                   allow_calibration_only: bool = False,
-                   **kwargs) -> list[dict[str, dict[str: list[Path]]]]:
+    def classify_files(self,
+                       input_dir_template: str,
+                       target: str,
+                       night: datetime.date,
+                       *args,
+                       allow_calibration_only: bool = False,
+                       **kwargs) -> list[dict[str, dict[str: list[Path]]]]:
         """
-        Sort a set of fits files into different categories
+        Classify a set of fits files into different categories
         types are: bias, flat, wavecal, orderdef, spec
 
         Parameters

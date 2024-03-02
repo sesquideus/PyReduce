@@ -39,13 +39,14 @@ class Dataset(metaclass=abc.ABCMeta):
                       out=f"{self.data_dir}/{self.instrument_name}.tar.gz")
 
     def load_data_from_dropbox(self) -> None:
+        # ToDo Right now it does not work but I downloaded the data in the terminal
         wget.download(self.data_url, out=f"{self.data_dir}/{self.instrument_name}.tar.gz")
 
     def __init__(self,
                  instrument_name: str = None,
                  target: str = None,
                  *,
-                 url: str = None,
+                 data_url: str = None,
                  local_dir: Path | None = None):
         """
         Load a dataset
@@ -66,8 +67,9 @@ class Dataset(metaclass=abc.ABCMeta):
         self.instrument_name = instrument_name
         self.target = target
 
-        if url is not None:
-            self.server_url = url
+        # If a data URL is present override
+        if data_url is not None:
+            self.server_url = data_url
 
         if local_dir is None:
             self._local_dir = Path(__file__).parent
