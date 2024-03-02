@@ -18,21 +18,3 @@ class DrizzleStep(Step, metaclass=abc.ABCMeta):
         # {'divide', 'none'}: how to apply the normalized flat field
         self.norm_scaling = config["norm_scaling"]
 
-    def calibrate(self, files: list[Path], mask: np.ma.masked_array, bias=None, norm_flat=None):
-        bias, bhead = bias if bias is not None else (None, None)
-        norm, blaze = norm_flat if norm_flat is not None else (None, None)
-        orig, thead = combine_calibrate(
-            files,
-            self.instrument,
-            self.mode,
-            mask,
-            bias=bias,
-            bhead=bhead,
-            norm=norm,
-            bias_scaling=self.bias_scaling,
-            norm_scaling=self.norm_scaling,
-            plot=self.plot,
-            plot_title=self.plot_title,
-        )
-
-        return orig, thead

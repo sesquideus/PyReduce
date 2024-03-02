@@ -40,7 +40,14 @@ from workflow import Workflow
 
 class WorkflowExampleMETIS(Workflow):
     instrument_name: str = "METIS"
+<<<<<<< Updated upstream
     # For now this does not work, download it manually, unzip, repack as .tar.gz and place to `data/datasets/`.
+=======
+    data_source: dict[str, str] = {
+        'method': 'dropbox',
+        'url': "https://www.dropbox.com/sh/h1dz80vsw4lwoel/AAAqJD_FGDGC-t12wgnPXVR8a",
+    }
+>>>>>>> Stashed changes
     data_url: str = "https://www.dropbox.com/sh/h1dz80vsw4lwoel/AAAqJD_FGDGC-t12wgnPXVR8a"
     target: str = r"HD[- ]?132205"
     night: datetime.date = datetime.date(2010, 4, 1)

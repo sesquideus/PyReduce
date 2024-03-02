@@ -19,6 +19,7 @@ from scipy.interpolate import interp1d
 from scipy.ndimage import convolve, median_filter
 from scipy.ndimage.morphology import binary_hit_or_miss
 from tqdm import tqdm
+from typing import Literal
 
 from .cwrappers import slitfunc, slitfunc_curved
 from .util import make_index, resample
@@ -561,34 +562,34 @@ def calc_scatter_correction(scatter, index):
 
 
 def extract_spectrum(
-    img,
-    ycen,
-    yrange,
-    xrange,
-    gain=1,
-    readnoise=0,
-    lambda_sf=0.1,
-    lambda_sp=0,
-    osample=1,
-    swath_width=None,
-    maxiter=20,
-    telluric=None,
-    scatter=None,
-    normalize=False,
-    threshold=0,
-    tilt=None,
-    shear=None,
-    plot=False,
-    plot_title=None,
-    im_norm=None,
-    im_ordr=None,
-    out_spec=None,
-    out_sunc=None,
-    out_slitf=None,
-    out_mask=None,
-    progress=None,
-    ord_num=0,
-    **kwargs,
+        img,
+        ycen,
+        yrange,
+        xrange,
+        gain=1,
+        readnoise=0,
+        lambda_sf=0.1,
+        lambda_sp=0,
+        osample=1,
+        swath_width=None,
+        maxiter=20,
+        telluric=None,
+        scatter=None,
+        normalize=False,
+        threshold=0,
+        tilt=None,
+        shear=None,
+        plot=False,
+        plot_title=None,
+        im_norm=None,
+        im_ordr=None,
+        out_spec=None,
+        out_sunc=None,
+        out_slitf=None,
+        out_mask=None,
+        progress=None,
+        ord_num=0,
+        **kwargs,
 ):
     """
     Extract the spectrum of a single order from an image
@@ -695,10 +696,10 @@ def extract_spectrum(
     # Perform slit decomposition within each swath stepping through the order with
     # half swath width. Spectra for each decomposition are combined with linear weights.
     with tqdm(
-        enumerate(zip(bins_start, bins_end)),
-        total=len(bins_start),
-        leave=False,
-        desc="Swath",
+            enumerate(zip(bins_start, bins_end)),
+            total=len(bins_start),
+            leave=False,
+            desc="Swath",
     ) as t:
         for ihalf, (ibeg, iend) in t:
             logger.trace(f"Extracting swath {ihalf:3d}, columns: {ibeg:5} - {iend:5}")
@@ -777,7 +778,7 @@ def extract_spectrum(
     # Weight for combining swaths
     weight = [np.ones(bins_end[i] - bins_start[i]) for i in range(nswath)]
     weight[0][: margin[0, 0]] = 0
-    weight[-1][len(weight[-1]) - margin[-1, 1] :] = 0
+    weight[-1][len(weight[-1]) - margin[-1, 1]:] = 0
     for i, j in zip(range(0, nswath - 1), range(1, nswath)):
         width = bins_end[i] - bins_start[i]
         overlap = bins_end[i] - bins_start[j]
@@ -792,7 +793,7 @@ def extract_spectrum(
         # Weights for one overlap from 0 to 1, but do not include those values (whats the point?)
         triangle = np.linspace(0, 1, overlap + 1, endpoint=False)[1:]
         # Cut away the margins at the corners
-        triangle = triangle[margin[j, 0] : len(triangle) - margin[i, 1]]
+        triangle = triangle[margin[j, 0]: len(triangle) - margin[i, 1]]
 
         # Set values
         weight[i][start_i:end_i] = 1 - triangle
@@ -806,7 +807,7 @@ def extract_spectrum(
     xrange[0] += margin[0, 0]
     xrange[1] -= margin[-1, 1]
     mask[: xrange[0]] = True
-    mask[xrange[1] :] = True
+    mask[xrange[1]:] = True
 
     # Apply weights
     for i, (ibeg, iend) in enumerate(zip(bins_start, bins_end)):
@@ -848,7 +849,7 @@ def get_y_scale(ycen, xrange, extraction_width, nrow):
     y_low, y_high : int, int
         lower and upper y bound for extraction
     """
-    ycen = ycen[xrange[0] : xrange[1]]
+    ycen = ycen[xrange[0]: xrange[1]]
 
     ymin = ycen - extraction_width[0]
     ymin = np.floor(ymin)
@@ -869,18 +870,17 @@ def get_y_scale(ycen, xrange, extraction_width, nrow):
     return y_lower_lim, y_upper_lim
 
 
-def optimal_extraction(
-    img,
-    orders,
-    extraction_width,
-    column_range,
-    tilt,
-    shear,
-    plot=False,
-    plot_title=None,
-    **kwargs,
-):
-    """Use optimal extraction to get spectra
+def optimal_extraction(img: np.ndarray[float],
+                       orders: np.ndarray[float],
+                       extraction_width: np.ndarray[int],
+                       column_range: np.ndarray[int],
+                       tilt,
+                       shear,
+                       plot: bool = False,
+                       plot_title: str = None,
+                       **kwargs):
+    """
+    Use optimal extraction to get spectra
 
     This functions just loops over the orders, the actual work is done in extract_spectrum
 
@@ -926,7 +926,7 @@ def optimal_extraction(
     # Add mask as defined by column ranges
     mask = np.full((nord, ncol), True)
     for i in range(nord):
-        mask[i, column_range[i, 0] : column_range[i, 1]] = False
+        mask[i, column_range[i, 0]: column_range[i, 1]] = False
     spectrum = np.ma.array(spectrum, mask=mask)
     uncertainties = np.ma.array(uncertainties, mask=mask)
 
@@ -940,7 +940,7 @@ def optimal_extraction(
         progress = None
 
     for i in tqdm(range(nord), desc="Order"):
-        logger.debug("Extracting relative order %i out of %i", i + 1, nord)
+        logger.debug(f"Extracting relative order {c.num(n + 1)} out of {c.num(nord)}")
 
         # Define a fixed height area containing one spectral order
         ycen = np.polyval(orders[i], ix)
@@ -1031,22 +1031,21 @@ def get_mask(img, model):
     return residual > vmax
 
 
-def arc_extraction(
-    img,
-    orders,
-    extraction_width,
-    column_range,
-    gain=1,
-    readnoise=0,
-    dark=0,
-    plot=False,
-    plot_title=None,
-    tilt=None,
-    shear=None,
-    collapse_function="median",
-    **kwargs,
-):
-    """Use "simple" arc extraction to get a spectrum
+def arc_extraction(img: np.ndarray[float],
+                   orders: np.ndarray[float],
+                   extraction_width: np.ndarray[float],
+                   column_range: np.ndarray[float],
+                   gain: float = 1,
+                   read_noise: float = 0,
+                   dark_current: float = 0,
+                   plot: bool = False,
+                   plot_title: str = None,
+                   tilt: np.ndarray[float] = None,  # ToDo: what type is this?
+                   shear: np.ndarray[float] = None,  # ToDo: what type is this?
+                   collapse_function: str = 'median',
+                   **kwargs):
+    """
+    Use "simple" arc extraction to get a spectrum
     Arc extraction simply takes the sum orthogonal to the order for extraction width pixels
 
     This extraction makes a few rough assumptions and does not provide the most accurate results,
@@ -1064,9 +1063,9 @@ def arc_extraction(
         column range to use
     gain : float, optional
         adu to electron, amplifier gain (default: 1)
-    readnoise : float, optional
+    read_noise : float, optional
         read out noise (default: 0)
-    dark : float, optional
+    dark_current : float, optional
         dark current noise (default: 0)
     plot : bool, optional
         wether to plot the results (default: False)
@@ -1089,7 +1088,7 @@ def arc_extraction(
     # Add mask as defined by column ranges
     mask = np.full((nord, ncol), True)
     for i in range(nord):
-        mask[i, column_range[i, 0] : column_range[i, 1]] = False
+        mask[i, column_range[i, 0]: column_range[i, 1]] = False
     spectrum = np.ma.array(spectrum, mask=mask)
     uncertainties = np.ma.array(uncertainties, mask=mask)
 
@@ -1121,22 +1120,21 @@ def arc_extraction(
             )
 
         # Sum over the prepared image
-        if collapse_function == "sum":
-            arc = np.ma.sum(img_order, axis=0)
-        elif collapse_function == "mean":
-            arc = np.ma.mean(img_order, axis=0) * img_order.shape[0]
-        elif collapse_function == "median":
-            arc = np.ma.median(img_order, axis=0) * img_order.shape[0]
-        else:
-            raise ValueError(
-                "Could not determine the arc method, expected one of ('sum', 'mean', 'median'), but got %s"
-                % collapse_function
-            )
+        match collapse_function:
+            case 'sum':
+                arc = np.ma.sum(img_order, axis=0)
+            case 'mean':
+                arc = np.ma.mean(img_order, axis=0) * img_order.shape[0]
+            case 'median':
+                arc = np.ma.median(img_order, axis=0) * img_order.shape[0]
+            case _:
+                raise ValueError(f"Could not determine the arc method, expected one of ('sum', 'mean', 'median'), "
+                                 f"but got {collapse_function}")
 
         # Store results
         spectrum[i, x_left_lim:x_right_lim] = arc
         uncertainties[i, x_left_lim:x_right_lim] = (
-            np.sqrt(np.abs(arc * gain + dark + readnoise ** 2)) / gain
+                np.sqrt(np.abs(arc * gain + dark_current + read_noise ** 2)) / gain
         )
 
     if plot:  # pragma: no cover
@@ -1153,9 +1151,7 @@ def arc_extraction(
     return spectrum, uncertainties
 
 
-def plot_comparison(
-    original, orders, spectrum, slitf, extraction_width, column_range, title=None
-):  # pragma: no cover
+def plot_comparison(original, orders, spectrum, slitf, extraction_width, column_range, title=None):  # pragma: no cover
     nrow, ncol = original.shape
     nord = len(orders)
     output = np.zeros((np.sum(extraction_width) + nord, ncol))
@@ -1182,7 +1178,7 @@ def plot_comparison(
 
     for i in range(nord):
         try:
-            tmp = spectrum[i, column_range[i, 0] : column_range[i, 1]]
+            tmp = spectrum[i, column_range[i, 0]: column_range[i, 1]]
             # if len(tmp)
             vmin = np.min(tmp[tmp != 0])
             tmp = np.copy(spectrum[i])
@@ -1199,7 +1195,7 @@ def plot_comparison(
     locs = np.array([0, *np.cumsum(locs)[:-1]])
     locs[:-1] += (np.diff(locs) * 0.5).astype(int)
     locs[-1] += ((output.shape[0] - locs[-1]) * 0.5).astype(int)
-    plt.yticks(locs, range(len(locs)))
+    plt.yticks(locs, list(map(str, range(len(locs)))))
 
     plot_title = "Extracted Spectrum vs. Rectified Image"
     if title is not None:
@@ -1210,18 +1206,15 @@ def plot_comparison(
     plt.show()
 
 
-def extract(
-    img,
-    orders,
-    column_range=None,
-    order_range=None,
-    extraction_width=0.5,
-    extraction_type="optimal",
-    tilt=None,
-    shear=None,
-    sigma_cutoff=0,
-    **kwargs,
-):
+def extract(img: np.ndarray[float],
+            orders: np.ndarray[float],
+            column_range: np.ndarray[int] | None = None,
+            order_range: np.ndarray[int] | None = None,
+            extraction_width: float = 0.5,
+            extraction_type: Literal['optimal', 'arc', 'normalize'] = "optimal",
+            tilt: float | np.ndarray[float] = None,  # ToDo probably 0?
+            shear: float | np.ndarray[float] = None,  # ToDo probably 0?
+            **kwargs) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Extract the spectrum from an image
 
@@ -1236,11 +1229,13 @@ def extract(
     order_range : array[2](int), optional
         range of orders to extract, orders have to be consecutive (default: use all)
     extraction_width : array[nord, 2]({float, int}), optional
-        extraction width above and below each order, values below 1.5 are considered relative, while values above are absolute (default: 0.5)
+        extraction width above and below each order, values below 1.5 are considered relative,
+        while values above are absolute (default: 0.5)
     extraction_type : {"optimal", "arc", "normalize"}, optional
         which extracttion algorithm to use, "optimal" uses optimal extraction, "arc" uses simple arc extraction, and "normalize" also uses optimal extraction, but returns the normalized image (default: "optimal")
     tilt : float or array[nord, ncol], optional
-        The tilt (1st order curvature) of the slit for curved extraction. Will use vertical extraction if no tilt is set. (default: None, i.e. tilt = 0)
+        The tilt (1st order curvature) of the slit for curved extraction. Will use vertical extraction
+        if no tilt is set. (default: None, i.e. tilt = 0)
     shear : float or array[nord, ncol], optional
         The shear (2nd order curvature) of the slit for curved extraction (default: None, i.e. shear = 0)
     polarization : bool, optional
@@ -1277,14 +1272,12 @@ def extract(
         shear = np.full((n, ncol), shear)
 
     # Fix the input parameters
-    extraction_width, column_range, orders = fix_parameters(
-        extraction_width, column_range, orders, nrow, ncol, nord
-    )
+    extraction_width, column_range, orders = fix_parameters(extraction_width, column_range, orders, nrow, ncol, nord)
     # Limit orders (and related properties) to orders in range
     nord = order_range[1] - order_range[0]
-    orders = orders[order_range[0] : order_range[1]]
-    column_range = column_range[order_range[0] : order_range[1]]
-    extraction_width = extraction_width[order_range[0] : order_range[1]]
+    orders = orders[order_range[0]: order_range[1]]
+    column_range = column_range[order_range[0]: order_range[1]]
+    extraction_width = extraction_width[order_range[0]: order_range[1]]
 
     # if sigma_cutoff > 0:
     #     # Blur the image and mask outliers
@@ -1299,55 +1292,40 @@ def extract(
     #     mask = diff > median + sigma_cutoff * std / 3
     #     img[mask] = np.ma.masked
 
-    if extraction_type == "optimal":
-        # the "normal" case, except for wavelength calibration files
-        spectrum, slitfunction, uncertainties = optimal_extraction(
-            img,
-            orders,
-            extraction_width,
-            column_range,
-            tilt=tilt,
-            shear=shear,
-            **kwargs,
-        )
-    elif extraction_type == "normalize":
-        # TODO
-        # Prepare normalized flat field image if necessary
-        # These will be passed and "returned" by reference
-        # I dont like it, but it works for now
-        im_norm = np.zeros_like(img)
-        im_ordr = np.zeros_like(img)
+    match extraction_type:
+        case 'optimal':
+            # the "normal" case, except for wavelength calibration files
+            spectrum, slitfunction, uncertainties = optimal_extraction(img, orders, extraction_width, column_range,
+                                                                       tilt=tilt,
+                                                                       shear=shear,
+                                                                       **kwargs)
+        case 'normalize':
+            # TODO
+            # Prepare normalized flat field image if necessary. These will be passed and "returned" by reference
+            # I don't like it, but it works for now
+            im_norm = np.zeros_like(img)
+            im_ordr = np.zeros_like(img)
 
-        blaze, _, _ = optimal_extraction(
-            img,
-            orders,
-            extraction_width,
-            column_range,
-            tilt=tilt,
-            shear=shear,
-            normalize=True,
-            im_norm=im_norm,
-            im_ordr=im_ordr,
-            **kwargs,
-        )
-        threshold_lower = kwargs.get("threshold_lower", 0)
-        im_norm[im_norm <= threshold_lower] = 1
-        im_ordr[im_ordr <= threshold_lower] = 1
-        return im_norm, im_ordr, blaze, column_range
-    elif extraction_type == "arc":
-        # Simpler extraction, just summing along the arc of the order
-        spectrum, uncertainties = arc_extraction(
-            img,
-            orders,
-            extraction_width,
-            column_range,
-            tilt=tilt,
-            shear=shear,
-            **kwargs,
-        )
-        slitfunction = None
-    else:
-        raise ValueError(f"Parameter 'extraction_type' not understood."
-                         f"Expected 'optimal', 'normalize', or 'arc' but got {extraction_type}.")
+            blaze, _, _ = optimal_extraction(img, orders, extraction_width, column_range,
+                                             tilt=tilt,
+                                             shear=shear,
+                                             normalize=True,
+                                             im_norm=im_norm,
+                                             im_ordr=im_ordr,
+                                             **kwargs)
+            threshold_lower = kwargs.get("threshold_lower", 0)
+            im_norm[im_norm <= threshold_lower] = 1
+            im_ordr[im_ordr <= threshold_lower] = 1
+            return im_norm, im_ordr, blaze, column_range
+        case 'arc':
+            # Simpler extraction, just summing along the arc of the order
+            spectrum, uncertainties = arc_extraction(img, orders, extraction_width, column_range,
+                                                     tilt=tilt,
+                                                     shear=shear,
+                                                     **kwargs)
+            slitfunction = None
+        case _:
+            raise ValueError(f"Parameter 'extraction_type' not understood."
+                             f"Expected 'optimal', 'normalize', or 'arc' but got {extraction_type}.")
 
     return spectrum, uncertainties, slitfunction, column_range

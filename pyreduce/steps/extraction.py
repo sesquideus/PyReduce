@@ -39,21 +39,17 @@ class ExtractionStep(Step, metaclass=abc.ABCMeta):
         orders, column_range = orders if orders is not None else (None, None)
         tilt, shear = curvature if curvature is not None else (None, None)
 
-        data, unc, blaze, cr = extract(
-            img,
-            orders,
-            gain=head["e_gain"],
-            readnoise=head["e_readn"],
-            dark=head["e_drk"],
-            column_range=column_range,
-            extraction_type=self.extraction_method,
-            order_range=self.order_range,
-            plot=self.plot,
-            plot_title=self.plot_title,
-            tilt=tilt,
-            shear=shear,
-            scatter=scatter,
-            **self.extraction_kwargs,
-        )
+        data, unc, blaze, cr = extract(img, orders,
+                                       gain=head["e_gain"],
+                                       readnoise=head["e_readn"],
+                                       dark=head["e_drk"],
+                                       column_range=column_range,
+                                       extraction_type=self.extraction_method,
+                                       order_range=self.order_range,
+                                       plot=self.plot,
+                                       plot_title=self.plot_title,
+                                       tilt=tilt,
+                                       shear=shear,
+                                       scatter=scatter,
+                                       **self.extraction_kwargs)
         return data, unc, blaze, cr
-
