@@ -7,7 +7,6 @@ Used to create master bias and master flat
 
 import datetime
 import logging
-import pprint
 
 import astropy.io.fits as fits
 import matplotlib.pyplot as plt
@@ -185,7 +184,7 @@ def combine_frames(files: list[Path],
         mean of them computed across the stack of files. In other words:
         >>> filwt[iFil] = median(mBuff[iCol-win:iCol+win,iFil])
         >>> norm_filwt = mean(filwt)
-        >>> prob[iCol,iFil] = (norm_filtwt>0) ? filwt[iCol]/norm_filwt : filwt[iCol]
+        >>> prob[iCol,iFil] = (norm_filtwt > 0) ? filwt[iCol]/norm_filwt : filwt[iCol]
 
         This is done for all iCol in the range of [win:nCol-win-1]. It is then linearly extrapolated to
         the win zones of both ends. E.g. for iCol in [0:win-1] range:
@@ -211,7 +210,7 @@ def combine_frames(files: list[Path],
         and the outliers are defined as:
         >>> iBad=where(mBuff-mFit gt thresh*sig)
 
-        >>> Bad values are replaced from the fit:
+        >>> # Bad values are replaced from the fit:
         >>> mBuff[iBad]=mFit[iBad]
 
         and mBuff is summed across the file dimension to create an output row.
@@ -255,8 +254,6 @@ def combine_frames(files: list[Path],
         logger.info(f"\t{i}\t{c.path(file)}")
 
     DEBUG_NROWS = 128  # print status update every DEBUG_NROWS rows (if debug is True)
-    if instrument is None or isinstance(instrument, str):
-        instrument = load_instrument(instrument)
 
     # Only one image
     if len(files) == 0:
@@ -285,11 +282,11 @@ def combine_frames(files: list[Path],
         # Get information from headers
         # TODO: check if all values are the same in all the headers?
 
-        heads = [
+        headers = [
             instrument.load_fits(f, mode, extension=extension, header_only=True, dtype=dtype, **kwargs)
             for f in files
         ]
-        head = heads[0]
+        _, head = headers[0]
 
         # if sizes vary, it will show during loading of the data
         n_columns = head["naxis1"]
@@ -310,23 +307,23 @@ def combine_frames(files: list[Path],
         # head["e_xlo*"] will find all entries with * as a wildcard
         # we also ensure that we will have one dimensional arrays (not just the value)
         cards = sorted(head["e_xlo*"].cards, key=lambda c: c[0])
-        x_low = [c[1] for c in cards]
+        x_low = [card[1] for card in cards]
         cards = sorted(head["e_xhi*"].cards, key=lambda c: c[0])
-        x_high = [c[1] for c in cards]
+        x_high = [card[1] for card in cards]
         cards = sorted(head["e_ylo*"].cards, key=lambda c: c[0])
-        y_low = [c[1] for c in cards]
+        y_low = [card[1] for card in cards]
         cards = sorted(head["e_yhi*"].cards, key=lambda c: c[0])
-        y_high = [c[1] for c in cards]
+        y_high = [card[1] for card in cards]
 
         cards = sorted(head["e_gain*"].cards, key=lambda c: c[0])
-        gain = [c[1] for c in cards]
+        gain = [card[1] for card in cards]
         cards = sorted(head["e_readn*"].cards, key=lambda c: c[0])
-        readnoise = [c[1] for c in cards]
-        total_exposure_time = sum(h.get("exptime", 0) for h in heads)
+        readnoise = [card[1] for card in cards]
+        total_exposure_time = sum(h.get("exptime", 0) for _, h in headers)
 
         # Scaling for image data
-        bscale = [h.get("bscale", 1) for h in heads]
-        bzero = [h.get("bzero", 0) for h in heads]
+        bscale = [h.get("bscale", 1) for _, h in headers]
+        bzero = [h.get("bzero", 0) for _, h in headers]
 
         result = np.zeros((n_rows, n_columns), dtype=dtype)  # the combined image
         n_fixed = 0  # number of fixed pixels
@@ -334,9 +331,9 @@ def combine_frames(files: list[Path],
         # Load all image hdus, but leave the data on the disk, using memmap
         # Need to scale data later
         if extension is None:
-            extension = [instrument.get_extension(h, mode) for h in heads]
+            extension = [instrument.get_extension(h, mode) for h in headers]
         else:
-            extension = [extension] * len(heads)
+            extension = [extension] * len(headers)
 
         data = [
             fits.open(f, memmap=True, do_not_scale_image_data=True)[e]

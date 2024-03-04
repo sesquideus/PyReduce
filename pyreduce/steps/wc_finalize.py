@@ -1,9 +1,11 @@
 import logging
 import numpy as np
-import os
+
+from pathlib import Path
 
 from pyreduce.wavelength_calibration import WavelengthCalibration as WavelengthCalibrationModule
 from .step import Step
+from pyreduce import colour as c
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +40,9 @@ class WavelengthCalibrationFinalize(Step):
         self.medium: str = config["medium"]
 
     @property
-    def savefile(self):
-        """str: Name of the wavelength echelle file"""
-        return os.path.join(self.output_dir, self.prefix + ".thar.npz")
+    def savefile(self) -> Path:
+        """ Name of the wavelength echelle file """
+        return self.output_dir / f"{self.prefix}.thar.npz"
 
     def run(self, wavecal_master, wavecal_init):
         """Perform wavelength calibration
@@ -99,7 +101,7 @@ class WavelengthCalibrationFinalize(Step):
             Updated line information for all lines
         """
         np.savez(self.savefile, wave=wave, coef=coef, linelist=linelist)
-        logger.info("Created wavelength calibration file: %s", self.savefile)
+        logger.info(f"Created wavelength calibration file {c.path(self.savefile)}")
 
     def load(self):
         """Load the results of the wavelength calibration
@@ -114,7 +116,7 @@ class WavelengthCalibrationFinalize(Step):
             Updated line information for all lines
         """
         data = np.load(self.savefile, allow_pickle=True)
-        logger.info("Wavelength calibration file: %s", self.savefile)
+        logger.info(f"Loaded a wavelength calibration file {c.path(self.savefile)}")
         wave = data["wave"]
         coef = data["coef"]
         linelist = data["linelist"]

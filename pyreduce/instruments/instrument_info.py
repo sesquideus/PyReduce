@@ -38,25 +38,12 @@ def load_instrument(instrument_name: str | None = None) -> Instrument:
     return instrument_class()
 
 
-def get_instrument_info(instrument_name: str) -> dict[str, Any]:
-    """Load instrument specific information
-
-    Parameters
-    ----------
-    instrument_name : str
-        Name of the instrument
-
-    Returns
-    -------
-    dict{str:obj}
-        Dictionary with information
-    """
-
-    instrument = load_instrument(instrument_name)
-    return instrument.info
-
-
-def sort_files(input_dir_template: str, target: str, night: datetime.date, instrument: str, mode: str, **kwargs):
+def sort_files(input_dir_template: str,
+               target: str,
+               night: datetime.date | None,
+               instrument: str,
+               mode: str,
+               **kwargs):
     """Sort a list of files into different categories and discard files that are not used
 
     Parameters

@@ -32,7 +32,6 @@
     "position.vz": "JWST_DZ",
     "target": "TARGNAME",
     "observation_type": "FILETYPE",
-
     "kw_bias" : null,
     "kw_flat" : "FILENAME",
     "kw_curvature": null,

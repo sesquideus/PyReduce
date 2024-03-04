@@ -6,15 +6,15 @@
     "date": "MJD-OBS",
     "date_format": "mjd",
     "modes": [
-	"LSS_L", 
-	"LSS_M", 
-	"LSS_N"
+        "LSS_L",
+        "LSS_M",
+        "LSS_N"
     ],
     "kw_modes": "INSTMODE",
     "id_modes": [
-	"lss_l",
-	"lss_m", 
-	"lss_n"
+        "lss_l",
+        "lss_m",
+        "lss_n"
     ],
     "extension": 0,
     "orientation": [

@@ -1,6 +1,8 @@
 import logging
-import os
 
+from pathlib import Path
+
+from pyreduce import colour as c
 from pyreduce.wavelength_calibration import LineList
 from pyreduce.wavelength_calibration import WavelengthCalibrationInitialize as WavelengthCalibrationInitializeModule
 from .step import Step
@@ -37,9 +39,9 @@ class WavelengthCalibrationInitialize(Step):
         self.cutoff: float = config["cutoff"]
 
     @property
-    def savefile(self):
+    def savefile(self) -> Path:
         """str: Name of the wavelength echelle file"""
-        return os.path.join(self.output_dir, self.prefix + ".linelist.npz")
+        return self.output_dir / f"{self.prefix}.linelist.npz"
 
     def run(self, wavecal_master):
         thar, thead = wavecal_master
@@ -47,9 +49,7 @@ class WavelengthCalibrationInitialize(Step):
         # Get the initial wavelength guess from the instrument
         wave_range = self.instrument.get_wavelength_range(thead, self.mode)
         if wave_range is None:
-            raise ValueError(
-                "This instrument is missing an initial wavelength guess for wavecal_init"
-            )
+            raise ValueError("This instrument is missing an initial wavelength guess for wavecal_init")
 
         module = WavelengthCalibrationInitializeModule(
             plot=self.plot,
@@ -74,16 +74,15 @@ class WavelengthCalibrationInitialize(Step):
 
     def load(self, config, wavecal_master):
         thar, thead = wavecal_master
+        reference = self.savefile
         try:
             # Try loading the custom reference file
-            reference = self.savefile
             linelist = LineList.load(reference)
         except FileNotFoundError:
             # If that fails, load the file provided by PyReduce
             # It usually fails because we want to use this one
-            reference = self.instrument.get_wavecal_filename(
-                thead, self.mode, **config["instrument"]
-            )
+            logger.warning(f"Could not load wavelength calibration linelist from {c.path(reference)}")
+            reference = self.instrument.get_wavecal_filename(thead, self.mode, **config["instrument"])
 
             # This should fail if there is no provided file by PyReduce
             linelist = LineList.load(reference)

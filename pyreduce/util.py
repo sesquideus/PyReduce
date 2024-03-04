@@ -582,9 +582,7 @@ def plot2d(x, y, z, coeff, title=None):
     plt.show()
 
 
-def polyfit2d(
-    x, y, z, degree=1, max_degree=None, scale=True, plot=False, plot_title=None
-):
+def polyfit2d(x, y, z, degree=1, max_degree=None, scale=True, plot=False, plot_title=None):
     """A simple 2D plynomial fit to data x, y, z
     The polynomial can be evaluated with numpy.polynomial.polynomial.polyval2d
 

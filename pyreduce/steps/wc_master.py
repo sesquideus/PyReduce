@@ -4,6 +4,7 @@ import os
 
 from astropy.io import fits
 
+from pyreduce import colour as c
 from .calibration import CalibrationStep
 from .extraction import ExtractionStep
 
@@ -75,7 +76,7 @@ class WavelengthCalibrationMaster(CalibrationStep, ExtractionStep):
             overwrite=True,
             output_verify="silentfix+ignore",
         )
-        logger.info("Created wavelength calibration spectrum file: %s", self.savefile)
+        logger.info(f"Created wavelength calibration spectrum file {c.path(self.savefile)}")
 
     def load(self):
         """Load master wavelength calibration from disk

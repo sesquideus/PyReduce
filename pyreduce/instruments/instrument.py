@@ -4,13 +4,11 @@ Contains some general functionality, which may be overridden by the children of 
 """
 import abc
 import datetime
-import glob
 import itertools
 import json
 import logging
 import os.path
 import pprint
-import typing
 
 import numpy as np
 
@@ -37,7 +35,7 @@ def find_first_index(arr, value):
         raise KeyError("Value %s not found" % value)
 
 
-def observation_date_to_night(observation_date: datetime.date) -> datetime.date | None:
+def observation_date_to_night(observation_date: datetime.date | None) -> datetime.date | None:
     """Convert an observation timestamp into the date of the observation night
     Nights start at 12am and end at 12 am the next day
     TODO: How is this supposed to handle UTC?
@@ -53,15 +51,15 @@ def observation_date_to_night(observation_date: datetime.date) -> datetime.date 
         night of the observation
         or None if the date cannot be parsed
     """
-    if observation_date == "":
+    assert isinstance(observation_date, datetime.date) or observation_date is None, \
+        f"observation_date must be either a datetime.date or None, got {type(observation_date)}"
+
+    if observation_date is None:
         return None
-
-    observation_date = parser.parse(observation_date)
-
-    if observation_date.hour < 12:
-        observation_date -= datetime.timedelta(days=1)
-
-    return observation_date.date()
+    else:
+        if observation_date.hour < 12:
+            observation_date -= datetime.timedelta(days=1)
+        return observation_date.date()
 
 
 class HeaderGetter:
@@ -208,7 +206,7 @@ class Instrument(metaclass=abc.ABCMeta):
                   mask: np.ndarray[float] = None,
                   header_only: bool = False,
                   dtype: np.dtype = np.float64
-                  ) -> fits.Header | tuple[np.ma.masked_array, fits.Header]:  # TODO Maybe a sensible default here?
+                  ) -> tuple[np.ma.masked_array | None, fits.Header]:
         """
         load fits file, REDUCE style
 
@@ -256,15 +254,15 @@ class Instrument(metaclass=abc.ABCMeta):
         header["e_input"] = (os.path.basename(fname), "Original input filename")
 
         if header_only:
-            hdu.close()
-            return header
+            data = None
+        else:
+            data = clipnflip(hdu[extension].data, header)
 
-        data = clipnflip(hdu[extension].data, header)
+            if dtype is not None:
+                logger.debug(f"Forcing dtype to {c.over(dtype.__name__)}")
+                data = data.astype(dtype)
 
-        if dtype is not None:
-            data = data.astype(dtype)
-
-        data = np.ma.masked_array(data, mask=mask)
+            data = np.ma.masked_array(data, mask=mask)
 
         hdu.close()
         return data, header
@@ -582,7 +580,7 @@ class Instrument(metaclass=abc.ABCMeta):
             if any([len(a) > 0 for a in f.values()]):
                 files.append((setting, f))
         if len(files) == 0:
-            logger.warning(f"No {self.science} files found matching the expected values {expected[self.science]}")
+            logger.warning(f"No {c.name(self.science)} files found matching the expected values {expected[self.science]}")
 
         return files
 
@@ -644,7 +642,7 @@ class Instrument(metaclass=abc.ABCMeta):
         specifier = header.get(info.get("wavecal_specifier", ""), "")
         instrument = "wavecal"
 
-        return Path(__file__).parents[1] / "wavecal", f"{instrument}_{mode}_{specifier}.npz"
+        return Path(__file__).parents[1] / "wavecal" / f"{instrument}_{mode}_{specifier}.npz"
 
     def get_supported_modes(self):
         info = self.load_info()
@@ -663,13 +661,12 @@ class InstrumentWithModes(Instrument):
     """
     def __init__(self):
         super().__init__()
-
         # replacement = {k: v for k, v in zip(self.info["id_modes"], self.info["modes"])}
         self.filters["mode"] = ModeFilter(self.info["kw_modes"])
         self.shared += ["mode"]
 
     def get_expected_values(self, target, night, mode):
-        expectations = super().get_expected_values(target, night, mode)
+        expectations = super().get_expected_values(target, night)
 
         id_mode = [
             self.info["id_modes"][i]

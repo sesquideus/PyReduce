@@ -123,7 +123,7 @@ class Reducer:
         # But give a warning
         if load:
             try:
-                logger.info(f"Loading data from step {c.act(step)}")
+                logger.info(f"Loading data from step {c.step(step)}")
                 data = module.load(**kwargs)
             except FileNotFoundError:
                 logger.warning(f"Intermediate file(s) for loading step {c.act(step)} not found. Running it instead.")

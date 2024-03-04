@@ -18,10 +18,12 @@ from scipy.ndimage.filters import gaussian_filter1d
 from scipy.ndimage.morphology import grey_closing
 from scipy.optimize import curve_fit
 from tqdm import tqdm
+from typing import Literal
 
-from os.path import dirname, join
+from os.path import join
 from pathlib import Path
 
+from pyreduce import colour as c
 from . import util
 
 logger = logging.getLogger(__name__)
@@ -66,9 +68,9 @@ class AlignmentPlot:
                     last = int(np.clip(line["xlast"] + self.offset[1], 0, self.ncol))
                     order = (iord + self.offset[0]) * 2 + 1
                     ref_image[order, first:last, self.GREEN] = (
-                        10
-                        * line["height"]
-                        * signal.gaussian(last - first, line["width"])
+                            10
+                            * line["height"]
+                            * signal.gaussian(last - first, line["width"])
                     )
         ref_image = np.clip(ref_image, 0, 1)
         ref_image[ref_image < 0.1] = 0
@@ -128,27 +130,23 @@ class LineAtlas:
         self.medium = medium
 
         fname = element.lower() + ".fits"
-        folder = dirname(__file__)
-        self.fname = join(folder, "wavecal/atlas", fname)
+        folder = Path(__file__).parent
+        self.fname = folder / 'wavecal' / 'atlas' / fname
         self.wave, self.flux = self.load_fits(self.fname)
 
         try:
             # If a specific linelist file is provided
             fname_list = element.lower() + "_list.txt"
-            self.fname_list = join(folder, "wavecal/atlas", fname_list)
+            self.fname_list = dir / 'wavecal' / 'atlas' / fname_list
             linelist = np.genfromtxt(self.fname_list, dtype="f8,U8")
             wpos, element = linelist["f0"], linelist["f1"]
             indices = self.wave.searchsorted(wpos)
             heights = self.flux[indices]
-            self.linelist = np.rec.fromarrays(
-                [wpos, heights, element], names=["wave", "heights", "element"]
-            )
+            self.linelist = np.rec.fromarrays([wpos, heights, element], names=["wave", "heights", "element"])
         except (FileNotFoundError, IOError):
             # Otherwise fit the line positions from the spectrum
-            logger.warning(
-                "No dedicated linelist found for %s, determining peaks based on the reference spectrum instead.",
-                element,
-            )
+            logger.warning(f"No dedicated linelist found for {c.name(element)}, "
+                           f"determining peaks based on the reference spectrum instead.")
             module = WavelengthCalibration(plot=False)
             n, peaks = module._find_peaks(self.flux)
             wpos = np.interp(peaks, np.arange(len(self.wave)), self.wave)
@@ -261,30 +259,29 @@ class WavelengthCalibration:
     and returns the wavelength at each pixel
     """
 
-    def __init__(
-        self,
-        threshold=100,
-        degree=(6, 6),
-        iterations=3,
-        dimensionality="2D",
-        nstep=0,
-        correlate_cols=0,
-        shift_window=0.01,
-        manual=False,
-        polarim=False,
-        lfc_peak_width=3,
-        closing=5,
-        element=None,
-        medium="vac",
-        plot=True,
-        plot_title=None,
-    ):
+    def __init__(self,
+                 threshold: float = 100,
+                 degree: int | tuple[int, int] = (6, 6),
+                 iterations: int = 3,
+                 dimensionality: Literal['1D', '2D'] = "2D",
+                 nstep=0,
+                 correlate_cols=0,
+                 shift_window=0.01,
+                 manual=False,
+                 polarim=False,
+                 lfc_peak_width=3,
+                 closing=5,
+                 element=None,
+                 medium="vac",
+                 plot=True,
+                 plot_title=None,
+                 ):
         #:float: Residual threshold in m/s above which to remove lines
         self.threshold = threshold
         #:tuple(int, int): polynomial degree of the wavelength fit in (pixel, order) direction
         self.degree = degree
         if dimensionality == "1D":
-            self.degree = int(degree)
+            self.degree = degree
         elif dimensionality == "2D":
             self.degree = (int(degree[0]), int(degree[1]))
         #:int: Number of iterations in the remove residuals, auto id, loop
@@ -410,8 +407,8 @@ class WavelengthCalibration:
             first = int(max(line["xfirst"], 0))
             last = int(min(line["xlast"], self.ncol))
             img[int(line["order"]) - min_order, first:last] = line[
-                "height"
-            ] * signal.gaussian(last - first, line["width"])
+                                                                  "height"
+                                                              ] * signal.gaussian(last - first, line["width"])
         return img
 
     def align_manual(self, obs, lines):
@@ -492,10 +489,10 @@ class WavelengthCalibration:
 
             # Crop the image to speed up cross correlation
             if self.correlate_cols != 0:
-                _slice = slice((self.ncol - self.correlate_cols) // 2, 
+                _slice = slice((self.ncol - self.correlate_cols) // 2,
                                (self.ncol + self.correlate_cols) // 2 + 1)
-                ccimg = img[:,_slice]
-                ccobs = obs[:,_slice]
+                ccimg = img[:, _slice]
+                ccobs = obs[:, _slice]
             else:
                 ccimg, ccobs = img, obs
 
@@ -588,7 +585,7 @@ class WavelengthCalibration:
         """
         # For each line fit a gaussian to the observation
         for i, line in tqdm(
-            enumerate(lines), total=len(lines), leave=False, desc="Lines"
+                enumerate(lines), total=len(lines), leave=False, desc="Lines"
         ):
             if line["posm"] < 0 or line["posm"] >= obs.shape[1]:
                 # Line outside pixel range
@@ -639,31 +636,30 @@ class WavelengthCalibration:
         m_pix = lines["posm"][mask]
         m_ord = lines["order"][mask]
 
-        if self.dimensionality == "1D":
-            nord = self.nord
-            coef = np.zeros((nord, self.degree + 1))
-            for i in range(nord):
-                select = m_ord == i
-                if np.count_nonzero(select) < 2:
-                    # Not enough lines for wavelength solution
-                    logger.warning(
-                        "Not enough valid lines found wavelength calibration in order % i",
-                        i,
-                    )
-                    coef[i] = np.nan
-                    continue
+        match self.dimensionality:
+            case '1D':
+                nord = self.nord
+                coef = np.zeros((nord, self.degree + 1))
+                for i in range(nord):
+                    select = m_ord == i
+                    if np.count_nonzero(select) < 2:
+                        # Not enough lines for wavelength solution
+                        logger.warning(
+                            "Not enough valid lines found wavelength calibration in order % i",
+                            i,
+                        )
+                        coef[i] = np.nan
+                        continue
 
-                deg = max(min(self.degree, np.count_nonzero(select) - 2), 0)
-                coef[i, -(deg + 1) :] = np.polyfit(
-                    m_pix[select], m_wave[select], deg=deg
-                )
-        elif self.dimensionality == "2D":
-            # 2d polynomial fit with: x = column, y = order, z = wavelength
-            coef = util.polyfit2d(m_pix, m_ord, m_wave, degree=self.degree, plot=False)
-        else:
-            raise ValueError(
-                f"Parameter 'mode' not understood. Expected '1D' or '2D' but got {self.dimensionality}"
-            )
+                    deg = max(min(self.degree, np.count_nonzero(select) - 2), 0)
+                    coef[i, -(deg + 1):] = np.polyfit(
+                        m_pix[select], m_wave[select], deg=deg
+                    )
+            case '2D':
+                # 2d polynomial fit with: x = column, y = order, z = wavelength
+                coef = util.polyfit2d(m_pix, m_ord, m_wave, degree=self.degree, plot=False)
+            case _:
+                raise ValueError(f"Parameter 'mode' invalid, expected '1D' or '2D' but got {self.dimensionality}")
 
         if plot or self.plot >= 2:  # pragma: no cover
             self.plot_residuals(lines, coef, title="Residuals")
@@ -748,7 +744,7 @@ class WavelengthCalibration:
             step_coef[:, :, 0] = np.linspace(ncol / (nstep + 1), ncol, nstep + 1)[:-1]
 
             def func(x, *param):
-                x, y = x[: len(x) // 2], x[len(x) // 2 :]
+                x, y = x[: len(x) // 2], x[len(x) // 2:]
                 theta = np.asarray(param).reshape((nord, nstep))
                 xl = np.copy(x)
                 for j, i in enumerate(unique):
@@ -921,7 +917,7 @@ class WavelengthCalibration:
                 wave_obs = wave_img[order, mask]
 
                 threshold_of_peak_closeness = (
-                    np.diff(wave_obs) / wave_obs[:-1] * speed_of_light
+                        np.diff(wave_obs) / wave_obs[:-1] * speed_of_light
                 )
                 threshold_of_peak_closeness = np.max(threshold_of_peak_closeness)
 
@@ -937,7 +933,7 @@ class WavelengthCalibration:
                     (lines["order"] == order)
                     & (lines["wll"] > wmin)
                     & (lines["wll"] < wmax)
-                ]
+                    ]
 
                 peaks_atlas, peak_info_atlas = signal.find_peaks(
                     data_atlas, height=0.01, width=width_of_atlas_peaks
@@ -956,7 +952,7 @@ class WavelengthCalibration:
                     else:
                         # Look for matching peak in observation
                         diff = (
-                            np.abs(wpeak - wave_obs[peaks_obs]) / wpeak * speed_of_light
+                                np.abs(wpeak - wave_obs[peaks_obs]) / wpeak * speed_of_light
                         )
                         imin = np.argmin(diff)
 
@@ -1150,9 +1146,9 @@ class WavelengthCalibration:
                 )
                 # Residual in m/s
                 residual = (
-                    (solution - order_lines["wll"])
-                    / order_lines["wll"]
-                    * speed_of_light
+                        (solution - order_lines["wll"])
+                        / order_lines["wll"]
+                        * speed_of_light
                 )
                 mask = order_lines["flag"]
                 ax[iord // 2, iord % 2].plot(
@@ -1348,7 +1344,7 @@ class WavelengthCalibration:
             try:
                 self.atlas = LineAtlas(self.element, self.medium)
             except FileNotFoundError:
-                logger.warning("No Atlas file found for element %s", self.element)
+                logger.warning(f"No Atlas file found for element {c.name(self.element)}")
                 self.atlas = None
             except:
                 self.atlas = None
@@ -1563,20 +1559,18 @@ class WavelengthCalibrationComb(WavelengthCalibration):
 
 
 class WavelengthCalibrationInitialize(WavelengthCalibration):
-    def __init__(
-        self,
-        degree=2,
-        plot=False,
-        plot_title="Wavecal Initial",
-        wave_delta=20,
-        nwalkers=100,
-        steps=50_000,
-        resid_delta=1000,
-        cutoff=5,
-        smoothing=0,
-        element="thar",
-        medium="vac",
-    ):
+    def __init__(self,
+                 degree=2,
+                 plot=False,
+                 plot_title="Wavecal Initial",
+                 wave_delta=20,
+                 nwalkers=100,
+                 steps=50_000,
+                 resid_delta=1000,
+                 cutoff=5,
+                 smoothing=0,
+                 element="thar",
+                 medium="vac"):
         super().__init__(
             degree=degree,
             element=element,
@@ -1617,12 +1611,11 @@ class WavelengthCalibrationInitialize(WavelengthCalibration):
         spectrum /= np.max(spectrum)
         return spectrum
 
-    def determine_wavelength_coefficients(
-        self,
-        spectrum,
-        atlas,
-        wave_range,
-    ) -> np.ndarray:
+    def determine_wavelength_coefficients(self,
+                                          spectrum: np.ndarray[float],
+                                          atlas: LineAtlas,
+                                          wave_range: tuple[float, float],
+                                          ) -> np.ndarray:
         """
         Determines the wavelength polynomial coefficients of a spectrum,
         based on an line atlas with known spectral lines,
@@ -1774,11 +1767,11 @@ class WavelengthCalibrationInitialize(WavelengthCalibration):
         return coef
 
     def create_new_linelist_from_solution(
-        self,
-        spectrum,
-        wavelength,
-        atlas,
-        order,
+            self,
+            spectrum,
+            wavelength,
+            atlas,
+            order,
     ) -> LineList:
         """
         Create a new linelist based on an existing wavelength solution for a spectrum,
@@ -1816,7 +1809,7 @@ class WavelengthCalibrationInitialize(WavelengthCalibration):
         assert spectrum.ndim == 1, "Spectrum must have only 1 dimension"
         assert wavelength.ndim == 1, "Wavelength must have only 1 dimension"
         assert (
-            spectrum.size == wavelength.size
+                spectrum.size == wavelength.size
         ), "Spectrum and Wavelength must have the same size"
 
         n_features = spectrum.shape[0]
@@ -1840,7 +1833,7 @@ class WavelengthCalibrationInitialize(WavelengthCalibration):
         atlas_linelist = atlas.linelist[
             (atlas.linelist["wave"] > wavelength[0])
             & (atlas.linelist["wave"] < wavelength[-1])
-        ]
+            ]
 
         residuals = np.zeros_like(peak_wave)
         for i, pw in enumerate(peak_wave):

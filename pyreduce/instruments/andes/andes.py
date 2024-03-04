@@ -12,13 +12,13 @@ from itertools import product
 from pathlib import Path
 from astropy.io import fits
 
-from pyreduce.instruments.instrument import Instrument, HeaderGetter, observation_date_to_night
+from pyreduce.instruments.instrument import Instrument, InstrumentWithModes, HeaderGetter, observation_date_to_night
 from pyreduce.instruments.filters import Filter
 
 logger = logging.getLogger(__name__)
 
 
-class ANDES(Instrument):
+class ANDES(InstrumentWithModes):
     def __init__(self):
         super().__init__()
         self.filters["lamp"] = Filter(self.info["id_lamp"])
@@ -73,10 +73,6 @@ class ANDES(Instrument):
 
     def get_mask_filename(self, mode, **kwargs):
         band, decker, detector = self.parse_mode(mode)
-        fname = f"mask_{self.name.lower()}_det{detector}.fits.gz"
-        cwd = os.path.dirname(__file__)
-        fname = os.path.join(cwd, "..", "masks", fname)
-
         return Path(__file__).parents[1] / "masks" / f"mask_{self.name.lower()}_det{detector}.fits.gz"
 
     def get_wavelength_range(self, header, mode, **kwargs) -> np.ndarray:

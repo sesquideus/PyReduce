@@ -34,4 +34,4 @@ class METIS(InstrumentWithModes):
 
     def get_wavecal_filename(self, header, mode, **kwargs):
         """ Get the filename of the wavelength calibration config file """
-        return Path(__file__).parents[1] / "wavecal", f"metis_{mode.lower()}_2D.npz"
+        return Path(__file__).parents[1] / "wavecal" / f"metis_{mode.lower()}_2D.npz"

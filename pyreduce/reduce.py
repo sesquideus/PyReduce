@@ -56,8 +56,7 @@ def main(instrument_name: str,
          configuration: dict[str, Any] = None,
          order_range: tuple[int, int] = None,
          allow_calibration_only: bool = False,
-         skip_existing: bool = False,
-         debug: bool = False):  # until converted to a class
+         skip_existing: bool = False):  # until converted to a class
     r"""
     Main entry point for REDUCE scripts,
     default values can be changed as required if reduce is used as a script
@@ -101,18 +100,23 @@ def main(instrument_name: str,
     logger.debug(f"Running reduction for target {c.name(target)} on nights {c.name(night)}")
 
     # If there is a single target, create a length-1 list from it
-    if isinstance(target, str):
+    if isinstance(target, str) or target is None:
         targets = [target]
     else:
         targets = target
 
     # If there is a single night, create a length-1 list from it
     if night is None:
-        nights = []
+        nights = [None]
     elif isinstance(night, datetime.date):
         nights = [night]
+    elif isinstance(night, list):
+        for n in night:
+            if not isinstance(n, datetime.date):
+                raise TypeError(f"All nights must be instances of `datetime.date`")
+        nights = night
     else:
-        raise TypeError(f"Parameter 'night' must be an instance of datetime.date")
+        raise TypeError(f"Parameter 'night' must be an instance of `datetime.date` or a list thereof")
 
     is_none = {
         "modes": modes is None,
@@ -159,24 +163,20 @@ def main(instrument_name: str,
                  f"nights {c.print_list(nights, c.name)} × "
                  f"modes {c.print_list(modes, c.name)}")
 
-    for t, n, m in itertools.product(targets, nights, modes):
-        assert isinstance(n, datetime.date)
+    for target, night, mode in itertools.product(targets, nights, modes):
+        assert isinstance(night, datetime.date), f"Expected night to be a `datetime.date`, got {type(night)} instead"
 
-        log_file = (Path(base_dir_template.format(instrument=instrument.name, mode=modes, target=t)) /
-                    "logs" / f"{t}.log")
+        log_file = (Path(base_dir_template.format(instrument=instrument.name, mode=modes, target=target)) /
+                    "logs" / f"{target}.log")
         util.start_logging(log_file)
         # find input files and sort them by type
-        files = instrument.classify_files(
-            input_dir_template,
-            t,
-            n,
-            mode=m,
-            **config["instrument"],
-            allow_calibration_only=allow_calibration_only,
-        )
+        files = instrument.classify_files(input_dir_template, target, night,
+                                          mode=mode,
+                                          **config["instrument"],
+                                          allow_calibration_only=allow_calibration_only)
         if len(files) == 0:
-            logger.warning(f"No files found for instrument {c.name(instrument.name)}, target: {c.name(t)}, "
-                           f"night: {c.name(n)}, mode: {c.name(m)} in directory {c.path(input_dir_template)}")
+            logger.warning(f"No files found for instrument {c.name(instrument.name)}, target: {c.name(target)}, "
+                           f"night: {c.name(night)}, mode: {c.name(mode)} in directory {c.path(input_dir_template)}")
         else:
             for settings, filedict in files:
                 logger.info("Settings:")
@@ -194,7 +194,7 @@ def main(instrument_name: str,
                     output_dir_template,
                     settings.get("target"),
                     instrument,
-                    m,
+                    mode,
                     settings.get("night"),
                     config,
                     order_range=order_range,
