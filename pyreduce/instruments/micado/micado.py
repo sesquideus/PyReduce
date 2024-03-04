@@ -3,16 +3,11 @@ Handles instrument specific info for the MICADO spectrograph
 
 Mostly reading data from the header
 """
-import os.path
-import glob
 import logging
-from datetime import datetime
 
-import numpy as np
-from astropy.io import fits
-from dateutil import parser
+from pathlib import Path
 
-from pyreduce.instruments.instrument import HeaderGetter, InstrumentWithModes, Instrument, observation_date_to_night
+from pyreduce.instruments.instrument import Instrument
 
 logger = logging.getLogger(__name__)
 
@@ -35,17 +30,8 @@ class MICADO(Instrument):
         return header
 
     def get_extension(self, header, mode):
-        extension=5
-
-        return extension
+        return 5
 
     def get_wavecal_filename(self, header, mode, **kwargs):
         """ Get the filename of the wavelength calibration config file """
-        # info = self.load_info()
-        cwd = os.path.dirname(__file__)
-        # fname = f"xshooter_{mode.lower()}.npz"
-        fname = f"MICADO_HK_3arcsec_chip5.npz" ## f"micado_IJ_2D_det1.npz"
-        fname = os.path.join(cwd, "..", "wavecal", fname)
-
-
-        return fname
+        return Path(__file__).parents[1] / 'wavecal' / f"MICADO_HK_3arcsec_chip5.npz"

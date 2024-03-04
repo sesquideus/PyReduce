@@ -668,6 +668,9 @@ class InstrumentWithModes(Instrument):
     def get_expected_values(self, target, night, mode):
         expectations = super().get_expected_values(target, night)
 
+        if mode not in self.info['modes']:
+            raise ConfigurationError(f"Mode {mode} is not among the available modes")
+
         id_mode = [
             self.info["id_modes"][i]
             for i, m in enumerate(self.info["modes"])

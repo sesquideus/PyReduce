@@ -1,7 +1,7 @@
 {
-    "__instrument__": "METIS",
+    "__instrument__": "METIS_IFU",
     "instrument": "INSTRUME",
-    "id_instrument": "METIS",
+    "id_instrument": "METIS_IFU",
     "telescope": "ELT",
     "date": "MJD-OBS",
     "date_format": "mjd",

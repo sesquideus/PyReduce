@@ -1134,7 +1134,7 @@ def arc_extraction(img: np.ndarray[float],
         # Store results
         spectrum[i, x_left_lim:x_right_lim] = arc
         uncertainties[i, x_left_lim:x_right_lim] = (
-                np.sqrt(np.abs(arc * gain + dark_current + read_noise ** 2)) / gain
+            np.sqrt(np.abs(arc * gain + dark_current + read_noise ** 2)) / gain
         )
 
     if plot:  # pragma: no cover

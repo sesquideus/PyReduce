@@ -12,7 +12,7 @@ from pyreduce.instruments.instrument import InstrumentWithModes
 logger = logging.getLogger(__name__)
 
 
-class METIS(InstrumentWithModes):
+class METIS_LSS(InstrumentWithModes):
     def add_header_info(self, header, mode, **kwargs):
         """ read data from header and add it as REDUCE keyword back to the header """
         # "Normal" stuff is handled by the general version, specific changes to values happen here

@@ -38,8 +38,8 @@ from workflow import Workflow
 # config["wavecal"]["extraction_width"] = 0.7825 # 0.7325
 
 
-class WorkflowExampleMETIS(Workflow):
-    instrument_name: str = "METIS"
+class WorkflowExampleMETIS_LSS(Workflow):
+    instrument_name: str = "METIS_LSS"
     # For now this does not work, download it manually, unzip, repack as .tar.gz and place to `data/datasets/`.
     data_source: dict[str, str] = {
         'method': 'dropbox',
@@ -50,14 +50,14 @@ class WorkflowExampleMETIS(Workflow):
     mode: str = "LSS_M"  # LSS_M (settings_metis.json is now optimized for LSS_M mode)
     steps: list[str] = [
         # "bias",
-        "flat",
+        # "flat",
         "orders",
         "curvature",
         # "scatter",
         # "norm_flat",
-        "wavecal_master",
+        # "wavecal_master",
         # # "wavecal_init",
-        "wavecal",
+        # "wavecal",
         # "rectify",
         # "science",
         # "continuum",
@@ -73,4 +73,4 @@ class WorkflowExampleMETIS(Workflow):
 
 
 if __name__ == "__main__":
-    WorkflowExampleMETIS().process()
+    WorkflowExampleMETIS_LSS().process()
