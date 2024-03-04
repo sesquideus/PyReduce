@@ -31,18 +31,13 @@ def config(supported_instrument):
 
 def test_load_common():
     instr = instrument_info.load_instrument(None)
-    assert isinstance(instr, common.Instrument)
-    assert isinstance(instr, common.COMMON)
+    assert isinstance(instr, instrument.Instrument)
+    assert isinstance(instr, instrument.COMMON)
 
 
 def test_load_instrument(supported_instrument):
     instr = instrument_info.load_instrument(supported_instrument)
-    assert isinstance(instr, common.Instrument)
-
-
-def test_get_instrument_info(supported_instrument):
-    info = instrument_info.get_instrument_info(supported_instrument)
-    assert isinstance(info, dict)
+    assert isinstance(instr, instrument.Instrument)
 
 
 def test_modeinfo(supported_instrument, supported_modes):
@@ -76,9 +71,7 @@ def test_modeinfo(supported_instrument, supported_modes):
 
 def test_sort_files(supported_instrument, supported_modes, config):
     for mode in supported_modes:
-        files = instrument_info.sort_files(
-            ".", "", "", supported_instrument, mode, **config["instrument"]
-        )
+        files = instrument_info.sort_files(".", "", None, supported_instrument, mode, **config["instrument"])
         print(files)
         assert isinstance(files, list)
 

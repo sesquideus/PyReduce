@@ -88,5 +88,4 @@ class Workflow(metaclass=abc.ABCMeta):
             output_dir_template=self.output_dir_template,
             configuration=self.configuration,
             order_range=self.order_range,
-            debug=self.debug,
         )

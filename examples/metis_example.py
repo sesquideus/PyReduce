@@ -45,8 +45,8 @@ class WorkflowExampleMETIS(Workflow):
         'method': 'dropbox',
         'url': "https://www.dropbox.com/sh/h1dz80vsw4lwoel/AAAqJD_FGDGC-t12wgnPXVR8a",
     }
-    target: str = r"HD[- ]?132205"
-    night: datetime.date = datetime.date(2010, 4, 1)
+    target: str | None = None
+    night: datetime.date = datetime.date(2022, 4, 26)
     mode: str = "LSS_M"  # LSS_M (settings_metis.json is now optimized for LSS_M mode)
     steps: list[str] = [
         # "bias",
