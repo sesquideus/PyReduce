@@ -8,8 +8,25 @@ def colour(what, how):
     return f"{how}{what}{Style.RESET_ALL}"
 
 
-def debug(what, how):
-    return colour(what, Fore.LIGHTBLACK_EX)
+colours = {
+    'debug': Fore.LIGHTBLACK_EX,
+    'ok': Fore.GREEN,
+    'warn': Fore.YELLOW,
+    'error': Fore.RED,
+    'critical': Fore.RED,
+    'param': Fore.LIGHTCYAN_EX,
+    'path': Fore.LIGHTMAGENTA_EX,
+    'name': Fore.MAGENTA,
+    'over':  Fore.LIGHTGREEN_EX,
+    'act': Fore.LIGHTBLUE_EX,
+    'step': Fore.LIGHTYELLOW_EX,
+}
+
+#for key, clr in colours.items():
+#    setattr(, key, lambda x: colours[clr](x))
+
+def step(what):
+    return colour(what, Fore.LIGHTBLUE_EX)
 
 
 def ok(what):
